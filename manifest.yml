@@ -1,0 +1,5 @@
+---
+applications:
+ - name: active-learning-demo
+   random-route: true
+   memory: 1024M
