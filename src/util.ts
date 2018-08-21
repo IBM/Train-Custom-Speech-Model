@@ -10,7 +10,7 @@ import SpeechToTextV1 = require("watson-developer-cloud/speech-to-text/v1");
 
 
 interface CfenvOpt {
-  [vcapFile: string]: any
+  vcapFile?: any
 }
 
 export interface User {
@@ -67,8 +67,9 @@ export function getSTTV1 (req: Request) {
  * Login Required middleware.
  */
 export function isAuthenticated (req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) {
+  if (req.isAuthenticated() || req.path === "/user/login") {
     return next();
   }
+  req.session.returnTo = req.path;
   res.redirect("/user/login");
 };

@@ -1,6 +1,7 @@
-import { Router } from "express";
+'use strict';
+import { Router } from 'express';
 
-import * as apiController from "../controllers/api";
+import * as apiController from '../controllers/api';
 
 class Api {
   public router: Router;
@@ -9,8 +10,8 @@ class Api {
     this.init();
   }
   private init() {
-    this.router.get("/", apiController.getApi);
-    this.router.get("/listModels", apiController.listModels);
+    this.router.get('/', apiController.getApi);
+    this.router.get('/listModels', apiController.listModels);
   }
 }
 

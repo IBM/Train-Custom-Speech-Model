@@ -1,14 +1,14 @@
-"use strict";
+'use strict';
 
-import * as util from "../util";
-import { Request, Response } from "express";
+import * as util from '../util';
+import { Request, Response } from 'express';
 
 
 /**
  * GET /api
  */
 function getApi (req: Request, res: Response) {
-  res.send("Hello Custom Watson Language Model");
+  res.send('Hello Custom Watson Language Model');
 }
 
 function listModels (req: Request, res: Response) {

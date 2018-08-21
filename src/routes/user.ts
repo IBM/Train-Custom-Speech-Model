@@ -1,5 +1,6 @@
-import { Router } from "express";
-import * as userController from "../controllers/user";
+'use strict';
+import { Router } from 'express';
+import * as userController from '../controllers/user';
 
 class UserRouter {
   public router: Router;
@@ -8,8 +9,8 @@ class UserRouter {
     this.init();
   }
   private init() {
-    this.router.get("/login", userController.getLogin);
-    this.router.post("/login", userController.postLogin);
+    this.router.get('/login', userController.getLogin);
+    this.router.post('/login', userController.postLogin);
   }
 }
 

@@ -1,6 +1,7 @@
-import { Router } from "express";
+'use strict';
+import { Router } from 'express';
 
-import * as homeController from "../controllers/home";
+import * as homeController from '../controllers/home';
 class Home {
   public router: Router;
   public constructor() {
@@ -8,7 +9,7 @@ class Home {
     this.init();
   }
   private init() {
-    this.router.get("/", homeController.index);
+    this.router.get('/', homeController.index);
   }
 }
 

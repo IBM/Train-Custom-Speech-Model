@@ -1,15 +1,16 @@
-import { Request, Response } from "express";
+'use strict';
+import { Request, Response } from 'express';
 
 /**
  * GET /
  * Home page.
  */
-export let index = (req: Request, res: Response) => {
-  if (req.user) {
-    return res.render("home", {
-      title: "Home",
-      username: req.user.username
-    });
-  }
-  res.redirect("/user/login");
- };
+export function index(req: Request, res: Response) {
+  return res.render('home', {
+    title: 'Home',
+    username: req.user.username,
+    links: [
+      {txt: 'Speech to Text', href: '/pages/stt'}
+    ]
+  });
+};
