@@ -1,0 +1,17 @@
+html
+  include ../head.pug
+  body
+    h3 Sign in
+    form(method='POST', action='/user/login')
+      table
+        tr
+          td Username:
+          td
+            input(type='username', name='username', id='username', placeholder='Username', autofocus, required)
+        tr
+          td Password:
+          td
+            input(type='password', name='password', id='password', placeholder='Password', required)
+        tr
+          td(colspan=2)
+            button(type='submit') Log in

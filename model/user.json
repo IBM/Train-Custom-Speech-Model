@@ -1,0 +1,9 @@
+{
+  "user1": {
+    "password": "user1",
+    "customModel": "custom-model-1"
+  },
+  "user2": {
+    "password": "user2"
+  }
+}

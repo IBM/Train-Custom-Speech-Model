@@ -4,13 +4,18 @@
 import * as bodyParser from "body-parser";
 import * as compression from "compression";  // compresses requests
 import * as express from "express";
+import * as session from "express-session";
 import * as path from "path";
-import * as util from "./util"
+import * as util from "./util";
+import * as passport from "passport";
+import expressValidator = require("express-validator");
 
  /**
  * Routes
  */
+import homeRouter from "./routes/home";
 import apiRouter from "./routes/api";
+import userRouter from "./routes/user";
 
 /**
  * API keys and Passport configuration.
@@ -28,19 +33,34 @@ class App {
   }
 
   private middleware(): void {
+    util.initPassport();
     this.express.set("port", process.env.PORT || 3000);
+    this.express.set("views", path.join(__dirname, "..", "views"));
+    this.express.set("view engine", "pug");
     this.express.set("stt_service", util.getCfenv())
     this.express.use(compression());
+    this.express.use(expressValidator());
+    this.express.use(session({
+      resave: true,
+      saveUninitialized: true,
+      secret: process.env.SESSION_SECRET,
+    }));
     this.express.use(bodyParser.json());
     this.express.use(bodyParser.urlencoded({ extended: true }));
-    this.express.use(express.static(path.join(__dirname, "public"), { maxAge: 31557600000 }));
+    this.express.use(passport.initialize());
+    this.express.use(passport.session());
+    this.express.use(
+      express.static(path.join(__dirname, "public"), { maxAge: 31557600000 })
+    );
   }
 
   /**
    * Primary app routes.
    */
   private routes(): void {
+    this.express.use("/", homeRouter);
     this.express.use("/api", apiRouter);
+    this.express.use("/user", userRouter);
   }
 
   private launchConf() {

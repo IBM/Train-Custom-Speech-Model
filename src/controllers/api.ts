@@ -7,11 +7,11 @@ import { Request, Response } from "express";
 /**
  * GET /api
  */
-export let getApi = (req: Request, res: Response) => {
+function getApi (req: Request, res: Response) {
   res.send("Hello Custom Watson Language Model");
-};
+}
 
-export let listModels = (req: Request, res: Response) => {
+function listModels (req: Request, res: Response) {
   let speechToText = util.getSTTV1(req);
   speechToText.listLanguageModels(null, (error: any, languageModels: any) => {
     if (error) {
@@ -20,5 +20,7 @@ export let listModels = (req: Request, res: Response) => {
       res.send(JSON.stringify(languageModels, null, 2));
     }
   });
-}
+};
 
+
+export { getApi, listModels };
