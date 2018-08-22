@@ -12,8 +12,8 @@ function getApi (req: Request, res: Response) {
 }
 
 function listModels (req: Request, res: Response) {
-  let speechToText = util.getSTTV1(req.app.get("stt_service").credentials);
-  speechToText.listLanguageModels(null, (error: any, languageModels: any) => {
+  let speech = util.getSTTV1(req.app.get("stt_service").credentials);
+  speech.listLanguageModels(null, (error: any, languageModels: any) => {
     if (error) {
       res.send(error);
     } else {
@@ -22,5 +22,14 @@ function listModels (req: Request, res: Response) {
   });
 };
 
+async function getModel(req: Request, res: Response) {
+  let rev = await util.getModelStatus(req.app.get('stt_service').credentials, req.user.customModel);
+  if (rev[0]) {
+    res.send(JSON.stringify({error: rev[0]}, null, 2));
+  } else {
+    res.send(JSON.stringify(rev[1], null, 2));
+  }
+}
 
-export { getApi, listModels };
+
+export { getApi, listModels, getModel };

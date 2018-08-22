@@ -12,6 +12,7 @@ class Api {
   private init() {
     this.router.get('/', apiController.getApi);
     this.router.get('/listModels', apiController.listModels);
+    this.router.get('/getModel', apiController.getModel);
   }
 }
 
