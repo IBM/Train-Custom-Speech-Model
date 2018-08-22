@@ -1,34 +1,44 @@
 html
   include ../head.pug
   body
-    h3 Corpus Status
-      table
-        tr
-          td
-            b Model:
-          td #{customModel}
-        tr
-          td
-            b Corpus Name:
-          td #{status.name}
-        tr
-          td
-            b out_of_vocabulary_words:
-          td #{status.out_of_vocabulary_words}
-        tr
-          td
-            b total_words:
-          td #{status.total_words}
-        tr
-          td
-            b status:
-          td #{status.status}
-        tr
-          td
-            - if (status.status !== 'analyzed')
-              form(method='POST', action='/pages/corpus-status')
-                input(type='hidden', name='corpusName', id='corpusName', value=status.name)
+    .container.text-center
+      h3 Corpus Status
+      .center-page.responsive
+        .col-md-10.col-md-offset-1
+          table(class='table')
+            tr
+              td
+                b Model:
+              td #{customModel}
+            tr
+              td
+                b Corpus Name:
+              td #{status.name}
+            tr
+              td
+                b out_of_vocabulary_words:
+              td #{status.out_of_vocabulary_words}
+            tr
+              td
+                b total_words:
+              td #{status.total_words}
+            tr
+              td
+                b status:
+              td #{status.status} &#32;
+                - if (status.status == 'analyzed')
+                    span(class='glyphicon glyphicon-ok text-success')
+                - else
+                    span(class='glyphicon glyphicon-time text-warning')
+          br
+          - if (status.status !== 'analyzed')
+            form(method='POST', action='/pages/corpus-status')
+              .form-group
+                input(type='hidden', name='corpusName', id='corpusName', value=status.name,
+                      class='form-control')
+              .form-group
                 button(type='submit') Check
-            - else
-              form(method='POST', action='/pages/lm-train')
-                button(type='submit') Train
+          - else
+            form(method='POST', action='/pages/lm-train')
+              .form-group
+                button(type='submit', class='btn btn-block btn-primary') Train

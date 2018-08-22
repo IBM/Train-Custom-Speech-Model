@@ -1,9 +1,15 @@
 html
   include ./head.pug
   body
-    h2 Watson Speech to Text Service - Custom Language Model
-    br
-    h3 Hello #{username}
-    br
-    - for (var index = 0, len = links.length; index < len; index++)
-      a(href=links[index].href) #{links[index].txt}
+    .container
+      h2.text-center Watson Speech to Text Service - Custom Language Model
+      .text-center Logged in as:&#32;
+        |
+        strong #{username}
+      br
+      .center-page.responsive
+        h3.text-center Models
+        ul.list-group
+        - for (var index = 0, len = links.length; index < len; index++)
+          li.list-group-item
+            a(href=links[index].href) #{links[index].txt}
