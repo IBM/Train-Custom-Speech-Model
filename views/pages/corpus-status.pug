@@ -1,0 +1,34 @@
+html
+  include ../head.pug
+  body
+    h3 Corpus Status
+      table
+        tr
+          td
+            b Model:
+          td #{customModel}
+        tr
+          td
+            b Corpus Name:
+          td #{status.name}
+        tr
+          td
+            b out_of_vocabulary_words:
+          td #{status.out_of_vocabulary_words}
+        tr
+          td
+            b total_words:
+          td #{status.total_words}
+        tr
+          td
+            b status:
+          td #{status.status}
+        tr
+          td
+            - if (status.status !== 'analyzed')
+              form(method='POST', action='/pages/corpus-status')
+                input(type='hidden', name='corpusName', id='corpusName', value=status.name)
+                button(type='submit') Check
+            - else
+              form(method='POST', action='/pages/lm-train')
+                button(type='submit') Train

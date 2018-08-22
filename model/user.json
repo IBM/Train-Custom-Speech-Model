@@ -4,6 +4,7 @@
     "customModel": "custom-model-1"
   },
   "user2": {
-    "password": "user2"
+    "password": "user2",
+    "customModel": "custom-model-2"
   }
 }

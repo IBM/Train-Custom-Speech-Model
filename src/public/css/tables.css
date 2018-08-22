@@ -1,0 +1,76 @@
+@charset "utf-8";
+/*-----------------------------------------------------
+w3 general styles for tables
+Used by: pages with tabular data
+	(e.g. financials, machine specifications)
+Note: Do not use tables to format nontabular data
+	(e.g. margins, text paragraphs, lists)
+$Id: tables.css,v 1.6.4.2 2004/08/11 22:14:02 coop Exp $
+-----------------------------------------------------*/
+
+table {border:0; font-size:1em;}
+
+table caption,
+table th,
+table tr,
+table td,
+table tr th,
+table tr td {font-size:1em;}
+
+table caption {font-weight:bold; text-align:left;}
+table th {text-align:left; font-weight:bold;}
+table th, table td  {vertical-align:top;}
+
+table tr.odd,
+table tr.white 	{background:#fff;}
+
+table tr.even,
+table tr.gray 	{background:#ddd;}
+
+.basic-table {}
+.basic-table td {padding:.3em 1em;}
+.basic-table th {padding:.3em 1em; text-align:left;}
+
+table tr.blue-dark th		{background:#05a; color:#fff;}
+table tr.blue-med-light th	{background:#9be;}
+table tr.blue-light th		{background:#cef;}
+
+table tr.black th		{background:#000; color:#fff;}
+table tr.gray-med th		{background:#aaa;}
+table tr.gray-med-light th	{background:#ccc;}
+table tr.gray-light th		{background:#ddd;}
+table tr.gray-lightest th	{background:#eee;}
+
+table tr.green-med-light th	{background:#bd6;}
+table tr.green-light th		{background:#dfb;}
+
+table tr.yellow-med th		{background:#fe2;}
+table tr.yellow-light th	{background:#ffa;}
+
+table tr.red-dark th		{background:#a00; color:#fff;}
+
+table tr.pink-med th		{background:#f76;}
+table tr.pink-light th		{background:#fcc;}
+
+table tr.violet-med-light th	{background:#b7b;}
+table tr.violet-light th	{background:#ede;}
+
+
+td.date	{white-space:nowrap;}
+td.number	{text-align:right;}
+td.center	{text-align:center;}
+.up		{color:#7a3; font-weight:bold;}
+.down		{color:#a00; font-weight:bold;}
+
+.table-wrap {width:100%;}
+
+/* Deprecated classes, the classes below should not be used due to contrast issues. */
+table tr.dark th {color:#fff;}
+table tr.blue-med-dark th	{background:#47b; color:#fff;}
+table tr.gray-med-dark th	{background:#999; color:#fff;}
+table tr.green-dark th		{background:#7a3; color:#fff;}
+table tr.green-med-dark th	{background:#9c3; color:#fff;}
+table tr.orange-dark th		{background:#c60; color:#fff;}
+table tr.violet-dark th		{background:#936; color:#fff;}
+table tr.violet-med-dark th	{background:#969; color:#fff;}
+table tr.gray-dark th		{background:#666; color:#fff;}

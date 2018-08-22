@@ -12,6 +12,12 @@ class Pages {
   private init() {
     this.router.get('/stt', pageController.getSTT);
     this.router.post('/stt', pageController.uploadWav, pageController.postSTT);
+    this.router.post('/corpus', pageController.postCorpus);
+    this.router.get('/corpus', pageController.getCorpus);
+    this.router.post('/corpus-status', pageController.getCorpusStatus);
+    this.router.post('/lm-train', pageController.postTrain);
+    this.router.get('/lm-status', pageController.getLMStatus);
+    this.router.get('/list-words', pageController.listWords);
   }
 }
 

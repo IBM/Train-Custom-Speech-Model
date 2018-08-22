@@ -12,7 +12,7 @@ function getApi (req: Request, res: Response) {
 }
 
 function listModels (req: Request, res: Response) {
-  let speechToText = util.getSTTV1(req);
+  let speechToText = util.getSTTV1(req.app.get("stt_service").credentials);
   speechToText.listLanguageModels(null, (error: any, languageModels: any) => {
     if (error) {
       res.send(error);

@@ -1,0 +1,35 @@
+html
+  include ../head.pug
+  body
+    h2 Model Status
+    br
+    table
+      tr
+        td
+          b Model:
+        td #{status.name}
+      tr
+        td
+          b base_model_name:
+        td #{status.base_model_name}
+      tr
+        td
+          b dialect:
+        td #{status.dialect}
+      tr
+        td
+          b language:
+        td #{status.language}
+      tr
+        td
+          b status:
+        td #{status.status}
+      tr
+        td(colspan='2')
+          - if (status.status !== 'available')
+            form(method='Get', action='/pages/lm-status')
+              button(type='submit') Check
+          - else
+              form(method='Get', action='/pages/stt')
+                button(type='submit') Try it
+

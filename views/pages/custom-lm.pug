@@ -1,0 +1,22 @@
+html
+  include ../head.pug
+  body
+    h2 Add a phrase or sentence
+    br
+    form(method='POST', action='/pages/corpus')
+      table
+        tr
+          td
+           b Model:
+          td #{customModel}
+        tr
+          td
+            b Corpus Name:
+          td
+            input(name='corpusName', id='corpusName', placeholder='corpusName', required)
+        tr
+          td(colspan='2')
+            textarea(rows='10', name='corpus', id='corpus', placeholder='corpus', autofocus, required) #{text}
+        tr
+          td(colspan='2')
+            button(type='submit') Analyze

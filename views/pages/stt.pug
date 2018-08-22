@@ -1,15 +1,18 @@
 html
   include ../head.pug
   body
-    h3 Speech to Text
+    h2 Speech to Text
+    br
     form(method='POST', enctype='multipart/form-data', action='/pages/stt')
       table
         tr
-          td Wav file:
+          td
+            b Wav file:
           td
             input(type='file', name='wav', id='wav', accept='.wav', placeholder='wav', autofocus, required)
         tr
-          td Language Model:
+          td
+            b Language Model:
           td
             select(name='model', id='model', placeholder='model', required)
               option(value=options[0].value, selected) #{options[0].name}
@@ -17,4 +20,4 @@ html
                 option(value=options[index].value) #{options[index].name}
         tr
           td(colspan=2)
-            button(type='submit') Translate
+            button(type='submit') Transcribe
