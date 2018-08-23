@@ -39,7 +39,7 @@ class App {
     this.express.set('port', process.env.PORT || 3000);
     this.express.set('views', path.join(__dirname, '..', 'views'));
     this.express.set('view engine', 'pug');
-    this.express.set('stt_service', util.getCfenv())
+    this.express.set('stt_service', util.getCfenv());
     this.express.use(compression());
     this.express.use(expressValidator());
     this.express.use(session({

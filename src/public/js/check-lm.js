@@ -8,11 +8,16 @@ function checkLMStatus() {
       document.getElementById("dialect").innerHTML = result.dialect;
       document.getElementById('language').innerHTML = result.language;
       document.getElementById('status').innerHTML = result.status;
+      let button = document.getElementById('formButton');
       if (result.status === 'available') {
-        let button = document.getElementById('formButton');
         button.innerHTML = 'Try it';
         button.disabled = false;
       } else {
+        let text = button.innerHTML.concat('.');
+        if (text.length > 4) {
+          text = '.';
+        }
+        button.innerHTML = text;
         setTimeout(checkLMStatus, 2000);
       }
     }

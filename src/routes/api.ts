@@ -13,6 +13,7 @@ class Api {
     this.router.get('/', apiController.getApi);
     this.router.get('/listModels', apiController.listModels);
     this.router.get('/getModel', apiController.getModel);
+    this.router.get('/getCorpus', apiController.getCorpus);
   }
 }
 

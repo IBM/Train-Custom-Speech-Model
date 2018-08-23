@@ -1,34 +1,30 @@
 html
   include ../head.pug
-  body
+  script(src='/js/check-corpus.js')
+  body(onload='checkCorpus()')
     h3 Corpus Status
       table
         tr
           td
             b Model:
-          td #{customModel}
+          td(id='model') #{customModel}
         tr
           td
             b Corpus Name:
-          td #{status.name}
+          td(id='name') #{status.name}
         tr
           td
             b out_of_vocabulary_words:
-          td #{status.out_of_vocabulary_words}
+          td(id='out_of_vocabulary_words') #{status.out_of_vocabulary_words}
         tr
           td
             b total_words:
-          td #{status.total_words}
+          td(id='total_words') #{status.total_words}
         tr
           td
             b status:
-          td #{status.status}
+          td(id='status') #{status.status}
         tr
           td
-            - if (status.status !== 'analyzed')
-              form(method='POST', action='/pages/corpus-status')
-                input(type='hidden', name='corpusName', id='corpusName', value=status.name)
-                button(type='submit') Check
-            - else
-              form(method='POST', action='/pages/lm-train')
-                button(type='submit') Train
+            form(method='POST', action='/pages/lm-train')
+              button(id='formButton', name='formButton', type='submit', disabled) Checking...
