@@ -1,9 +1,18 @@
-nav(class='navbar navbar-default navbar-fixed-top')
+
+.header-banner
+  a(href='/', style='text-decoration: none;color:black;') Custom Language Model
+nav(class='navbar navbar-default navbar-static-top')
   .container
     .navbar-header
-      a(class='navbar-brand', href='#') Custom Language Model
+      button(type='button' class='navbar-toggle collapsed',
+             data-toggle='collapse', data-target='#navbar',
+             aria-expanded='false', aria-controls='navbar')
+        span(class='sr-only') Toggle navigation
+        span(class='icon-bar')
+        span(class='icon-bar')
+        span(class='icon-bar')
     .navbar-collapse.collapse(id='navbar')
-      ul(class='nav navbar-nav')
+      ul(class='nav navbar-nav navbar-center')
         li
           a(href='/pages/stt') Transcribe
         li
