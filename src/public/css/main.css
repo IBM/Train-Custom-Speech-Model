@@ -10,8 +10,26 @@
   padding: 40px;
 }
 
-.login-box {
-  border: 1px solid #c7c7c7;
-  border-radius: 8px;
-  margin-top: 10%;
+.login-heading {
+  font-size: 24px;
+}
+
+.login-body {
+  padding: 40px;
+}
+
+.header-banner {
+  text-decoration: none;
+  color:black;
+  font-family: Helvetica, Arial, sans-serif;
+  text-align: center;
+  font-weight: bold;
+  font-size: 32px;
+  padding: 12px;
+}
+
+.navbar-nav.navbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translatex(-50%);
 }

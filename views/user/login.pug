@@ -2,19 +2,20 @@ extends /layout.pug
 
 block content
   .row
-    .center-page.responsive.login-box
-      .col-md-10.col-md-offset-1
-        h3.text-center Sign In
-        form(method='POST', action='/user/login')
-          .form-group.input-group
-            span(class='input-group-addon')
-              i(class='glyphicon glyphicon-user')
-            input(type='username', class='form-control', name='username',
-                  id='username', placeholder='Username', autofocus, required)
-          .form-group.input-group
-            span(class='input-group-addon')
-              i(class='glyphicon glyphicon-lock')
-            input(type='password', class='form-control', name='password',
-                  id='password', placeholder='Password', required)
-          .form-group
-            button(type='submit', class='btn btn-block btn-default') Log In
+    .center-page.responsive
+        .panel.panel-default
+          .panel-heading.text-center.login-heading Login
+          .panel-body
+            form(method='POST', action='/user/login' class='login-body')
+              .form-group.input-group
+                span(class='input-group-addon')
+                  i(class='glyphicon glyphicon-user')
+                input(type='username', class='form-control', name='username',
+                      id='username', placeholder='Username', autofocus, required)
+              .form-group.input-group
+                span(class='input-group-addon')
+                  i(class='glyphicon glyphicon-lock')
+                input(type='password', class='form-control', name='password',
+                      id='password', placeholder='Password', required)
+              .form-group
+                button(type='submit', class='btn btn-block btn-default') Log In
