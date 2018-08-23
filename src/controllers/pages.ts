@@ -38,9 +38,22 @@ async function postSTT (req: Request, res: Response) {
   let speechToText = util.getSTTV1(req.app.get('stt_service').credentials);
   let bufferStream = new stream.PassThrough();
   bufferStream.end( req.file.buffer );
+  let types = ['wav', 'mp3', 'flac'];
+  let type = req.file.originalname.split('.').pop();
+  if (types.indexOf(type) == -1) {
+    console.log("Wrong file type");
+    return res.render('pages/stt', {
+      title: 'Speech to Text',
+      error: `File extension must be ${types.join(',')}`,
+      options: [
+        {name: 'en-US_BroadbandModel', value: 'en-US_BroadbandModel'},
+        {name: req.user.customModel, value: req.user.customModel}
+      ]
+    });
+  }
   let recognizeParams: RecognizeParams = {
     audio: bufferStream,
-    content_type: 'audio/wav',
+    content_type: `audio/${type}`,
     model: 'en-US_BroadbandModel'
   };
 
