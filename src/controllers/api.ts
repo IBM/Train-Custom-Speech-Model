@@ -31,5 +31,19 @@ async function getModel(req: Request, res: Response) {
   }
 }
 
+async function getCorpus(req: Request, res: Response) {
+  if (req.query.corpus) {
+    let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+    let status = await util.getCorpus(req.app.get('stt_service').credentials, id[1], req.query.corpus);
+    if (status[0]) {
+      res.send(JSON.stringify({error: status[0]}, null, 2));
+    } else {
+      res.send(JSON.stringify(status[1], null, 2));
+    }
+  } else {
+    res.send(JSON.stringify({error: 'no corpus name'}, null, 2));
+  }
+}
 
-export { getApi, listModels, getModel };
+
+export { getApi, listModels, getModel, getCorpus };
