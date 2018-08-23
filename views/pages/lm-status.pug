@@ -2,31 +2,33 @@ html
   include ../head.pug
   script(src='/js/check-lm.js')
   body(onload='checkLMStatus()')
-    h2 Model Status
-    br
-    table
-      tr
-        td
-          b Model:
-        td(id='model') #{status.name}
-      tr
-        td
-          b base_model_name:
-        td(id='baseModel') #{status.base_model_name}
-      tr
-        td
-          b dialect:
-        td(id='dialect') #{status.dialect}
-      tr
-        td
-          b language:
-        td(id='language') #{status.language}
-      tr
-        td
-          b status:
-        td(id='status') #{status.status}
-      tr
-        td(colspan='2')
-          form(method='Get', action='/pages/stt')
-            button(id='formButton', name='formButton', type='submit', disabled) Checking...
+    .container.text-center
+      h2 Model Status
+      .center-page.responsive
+        .col-md-10.col-md-offset-1
+          table(class='table')
+            tr
+              td
+                b Model:
+              td(id='model') #{status.name}
+            tr
+              td
+                b base_model_name:
+              td(id='baseModel') #{status.base_model_name}
+            tr
+              td
+                b dialect:
+              td(id='dialect') #{status.dialect}
+            tr
+              td
+                b language:
+              td(id='language') #{status.language}
+            tr
+              td
+                b status:
+              td(id='status') #{status.status}
 
+          form(method='Get', action='/pages/stt')
+            .form-group
+              button(id='formButton', name='formButton', type='submit',
+                     class='btn btn-block btn-primary' disabled) Checking...

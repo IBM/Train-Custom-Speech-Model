@@ -230,7 +230,7 @@ export async function listWords(credentials: STTCredential, model: string): Prom
  * Login Required middleware.
  */
 export function isAuthenticated (req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated() || req.path === "/user/login") {
+  if (req.isAuthenticated() || req.path === "/user/login" || req.path.match(/^\/(css|js)/)) {
     return next();
   }
   req.session.returnTo = req.path;

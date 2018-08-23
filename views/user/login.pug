@@ -1,17 +1,21 @@
 html
   include ../head.pug
   body
-    h3 Sign in
-    form(method='POST', action='/user/login')
-      table
-        tr
-          td Username:
-          td
-            input(type='username', name='username', id='username', placeholder='Username', autofocus, required)
-        tr
-          td Password:
-          td
-            input(type='password', name='password', id='password', placeholder='Password', required)
-        tr
-          td(colspan=2)
-            button(type='submit') Log in
+    .container
+      .row
+        .center-page.responsive.login-box
+          .col-md-10.col-md-offset-1
+            h3.text-center Sign In
+            form(method='POST', action='/user/login')
+              .form-group.input-group
+                span(class='input-group-addon')
+                  i(class='glyphicon glyphicon-user')
+                input(type='username', class='form-control', name='username',
+                      id='username', placeholder='Username', autofocus, required)
+              .form-group.input-group
+                span(class='input-group-addon')
+                  i(class='glyphicon glyphicon-lock')
+                input(type='password', class='form-control', name='password',
+                      id='password', placeholder='Password', required)
+              .form-group
+                button(type='submit', class='btn btn-block btn-default') Log In

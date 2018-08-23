@@ -2,29 +2,36 @@ html
   include ../head.pug
   script(src='/js/check-corpus.js')
   body(onload='checkCorpus()')
-    h3 Corpus Status
-      table
-        tr
-          td
-            b Model:
-          td(id='model') #{customModel}
-        tr
-          td
-            b Corpus Name:
-          td(id='name') #{status.name}
-        tr
-          td
-            b out_of_vocabulary_words:
-          td(id='out_of_vocabulary_words') #{status.out_of_vocabulary_words}
-        tr
-          td
-            b total_words:
-          td(id='total_words') #{status.total_words}
-        tr
-          td
-            b status:
-          td(id='status') #{status.status}
-        tr
-          td
-            form(method='POST', action='/pages/lm-train')
-              button(id='formButton', name='formButton', type='submit', disabled) Checking...
+    .container.text-center
+      h3 Corpus Status
+      .center-page.responsive
+        .col-md-10.col-md-offset-1
+          table(class='table')
+            tr
+              td
+                b Model:
+              td(id='model') #{customModel}
+            tr
+              td
+                b Corpus Name:
+              td(id='name') #{status.name}
+            tr
+              td
+                b out_of_vocabulary_words:
+              td(id='out_of_vocabulary_words') #{status.out_of_vocabulary_words}
+            tr
+              td
+                b total_words:
+              td(id='total_words') #{status.total_words}
+            tr
+              td
+                b status:
+              td(id='status') #{status.status} &#32;
+                - if (status.status == 'analyzed')
+                    span(class='glyphicon glyphicon-ok text-success')
+                - else
+                    span(class='glyphicon glyphicon-time text-warning')
+          br
+          form(method='POST', action='/pages/lm-train')
+            .form-group
+          button(id='formButton', name='formButton', type='submit', class='btn btn-block btn-primary', disabled) Checking...
