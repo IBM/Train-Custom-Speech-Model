@@ -9,7 +9,10 @@ html
           td
             b Wav file:
           td
-            input(type='file', name='wav', id='wav', accept='.wav', placeholder='wav', autofocus, required)
+            input(type='file', name='wav', id='wav', accept='.wav, .mp3, .flac', placeholder='wav', autofocus, required)
+            - if (error)
+              br
+              div(style='color:red;') #{error}
         tr
           td
             b Language Model:
