@@ -9,8 +9,11 @@ html
           form(method='POST', enctype='multipart/form-data', action='/pages/stt')
             .form-group
               label(for='wav') Audio File (wav)
-              input(type='file', name='wav', id='wav', accept='.wav', placeholder='wav',
+              input(type='file', name='wav', id='wav', accept='.wav, .mp3, .flac', placeholder='wav',
                     class='form-control', autofocus, required)
+              - if (error)
+                br
+                div(style='color:red;') #{error}
             .form-group
               label(for='model') Language Model
               select(name='model', id='model', class='form-control', placeholder='model', required)
