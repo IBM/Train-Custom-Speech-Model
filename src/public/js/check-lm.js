@@ -1,4 +1,4 @@
-function checkLMStatus() {
+function afterBodyLoaded() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
@@ -18,7 +18,7 @@ function checkLMStatus() {
           text = '.';
         }
         button.innerHTML = text;
-        setTimeout(checkLMStatus, 2000);
+        setTimeout(afterBodyLoaded, 2000);
       }
     }
   };

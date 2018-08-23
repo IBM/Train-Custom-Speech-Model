@@ -1,15 +1,14 @@
-html
-  include ./head.pug
-  body
-    .container
-      h2.text-center Watson Speech to Text Service - Custom Language Model
-      .text-center Logged in as:&#32;
-        |
-        strong #{username}
-      br
-      .center-page.responsive
-        h3.text-center Models
-        ul.list-group
-        - for (var index = 0, len = links.length; index < len; index++)
-          li.list-group-item
-            a(href=links[index].href) #{links[index].txt}
+extends /layout.pug
+
+block content
+  h2.text-center Watson Speech to Text Service - Custom Language Model
+  .text-center Logged in as:&#32;
+    |
+    strong #{username}
+  br
+  .center-page.responsive
+    h3.text-center Models
+    ul.list-group
+    - for (var index = 0, len = links.length; index < len; index++)
+      li.list-group-item
+        a(href=links[index].href) #{links[index].txt}

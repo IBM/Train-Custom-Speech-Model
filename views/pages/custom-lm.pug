@@ -1,20 +1,20 @@
-html
-  include ../head.pug
-  body
-    .container.text-center
-      h2 Add a phrase or sentence
-      .center-page.responsive
-        .col-md-10.col-md-offset-1
-          form(method='POST', action='/pages/corpus')
-            .form-group
-              label(for='corpusName') Model
-              p(class='form-control-static') #{customModel}
-            .form-group
-              label(for='corpusName') Corpus Name
-              input(name='corpusName', id='corpusName', class='form-control',
-                    placeholder='Corpus Name', required)
-            .form-group
-              textarea(rows='10', name='corpus', id='corpus', class='form-control',
-                       placeholder='corpus', autofocus, required) #{text}
-            .form-group
-              button(type='submit', class='btn btn-block btn-primary') Analyze
+extends /layout.pug
+
+block content
+  .container.text-center
+    h2 Add a phrase or sentence
+    .center-page.responsive
+      .col-md-10.col-md-offset-1
+        form(method='POST', action='/pages/corpus')
+          .form-group
+            label(for='corpusName') Model
+            p(class='form-control-static') #{customModel}
+          .form-group
+            label(for='corpusName') Corpus Name
+            input(name='corpusName', id='corpusName', class='form-control',
+                  placeholder='Corpus Name', required)
+          .form-group
+            textarea(rows='10', name='corpus', id='corpus', class='form-control',
+                     placeholder='corpus', autofocus, required) #{text}
+          .form-group
+            button(type='submit', class='btn btn-block btn-primary') Analyze

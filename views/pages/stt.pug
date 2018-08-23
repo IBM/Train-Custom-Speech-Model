@@ -1,24 +1,24 @@
-html
-  include ../head.pug
-  body
-    .container.text-center
-      h2 Speech to Text
-      p Select the audio file and model to use for transcription.
-      .center-page.responsive
-        .col-md-10.col-md-offset-1
-          form(method='POST', enctype='multipart/form-data', action='/pages/stt')
-            .form-group
-              label(for='wav') Audio File (wav)
-              input(type='file', name='wav', id='wav', accept='.wav, .mp3, .flac', placeholder='wav',
-                    class='form-control', autofocus, required)
-              - if (error)
-                br
-                div(style='color:red;') #{error}
-            .form-group
-              label(for='model') Language Model
-              select(name='model', id='model', class='form-control', placeholder='model', required)
-                  option(value=options[0].value, selected) #{options[0].name}
-                  - for (var index = 1, length = options.length; index < length; index++)
-                    option(value=options[index].value) #{options[index].name}
-            .form-group
-              button(type='submit', class='btn btn-block btn-primary') Transcribe
+extends /layout.pug
+
+block content
+  .container.text-center
+    h2 Speech to Text
+    p Select the audio file and model to use for transcription.
+    .center-page.responsive
+      .col-md-10.col-md-offset-1
+        form(method='POST', enctype='multipart/form-data', action='/pages/stt')
+          .form-group
+            label(for='wav') Audio File (wav)
+            input(type='file', name='wav', id='wav', accept='.wav, .mp3, .flac', placeholder='wav',
+                  class='form-control', autofocus, required)
+            - if (error)
+              br
+              div(style='color:red;') #{error}
+          .form-group
+            label(for='model') Language Model
+            select(name='model', id='model', class='form-control', placeholder='model', required)
+                option(value=options[0].value, selected) #{options[0].name}
+                - for (var index = 1, length = options.length; index < length; index++)
+                  option(value=options[index].value) #{options[index].name}
+          .form-group
+            button(type='submit', class='btn btn-block btn-primary') Transcribe

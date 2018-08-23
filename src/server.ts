@@ -36,6 +36,7 @@ class App {
 
   private middleware(): void {
     util.initPassport();
+    this.express.locals.basedir = path.join(__dirname, '..', 'views');
     this.express.set('port', process.env.PORT || 3000);
     this.express.set('views', path.join(__dirname, '..', 'views'));
     this.express.set('view engine', 'pug');

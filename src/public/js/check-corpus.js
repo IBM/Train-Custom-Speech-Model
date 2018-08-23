@@ -1,4 +1,4 @@
-function checkCorpus() {
+function afterBodyLoaded() {
   let xhttp = new XMLHttpRequest();
   let corpus = document.getElementById('name').innerHTML;
   xhttp.onreadystatechange = function() {
@@ -18,7 +18,7 @@ function checkCorpus() {
           text = '.';
         }
         button.innerHTML = text;
-        setTimeout(checkCorpus, 2000);
+        setTimeout(afterBodyLoaded, 2000);
       }
     }
   };
