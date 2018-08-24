@@ -18,6 +18,7 @@ class Pages {
     this.router.post('/lm-train', pageController.postTrain);
     this.router.get('/lm-status', pageController.getLMStatus);
     this.router.get('/list-words', pageController.listWords);
+    this.router.post('/add-word', pageController.postWord);
   }
 }
 

@@ -143,6 +143,25 @@ export function addCorpus(credentials: STTCredential, modelId: string, corpusNam
 
 }
 
+export function addWord(credentials: STTCredential, modelId: string, word: string, soundsLike?: string[], displayAs?: string ){
+  let speech = getSTTV1(credentials);
+  let addWordParams = {
+    customization_id: modelId,
+    word: word,
+    sounds_like: soundsLike,
+    display_as: displayAs
+  };
+  return new Promise( (resolve, reject) => {
+    speech.addWord(addWordParams, (error: any) => {
+      if (error) {
+        resolve(error);
+      } else {
+        resolve(undefined);
+      }
+    });
+  });
+}
+
 export interface CorpusResult {
   name: string;
   out_of_vocabulary_words: number;

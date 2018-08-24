@@ -45,5 +45,20 @@ async function getCorpus(req: Request, res: Response) {
   }
 }
 
-
-export { getApi, listModels, getModel, getCorpus };
+async function getWord(req: Request, res: Response) {
+  if (req.query.word) {
+    let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+    let stt = util.getSTTV1(req.app.get('stt_service').credentials);
+    stt.getWord({'customization_id': id[1],'word_name': req.query.word}, (error: any, result: any)=>{
+        if (error) {
+        res.send(JSON.stringify({error: error}, null, 2));
+      } else {
+        res.send(JSON.stringify(result, null, 2));
+      }
+    });
+  }
+  else{
+    res.send({})
+  }
+}
+export { getApi, listModels, getModel, getCorpus, getWord };
