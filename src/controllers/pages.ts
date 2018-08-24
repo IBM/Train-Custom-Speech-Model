@@ -4,6 +4,7 @@ import * as util from '../util';
 import * as multer from 'multer';
 import * as stream from 'stream';
 import { Request, Response, RequestHandler } from 'express';
+import { getWord } from './api';
 
 let upload = multer({ storage: multer.memoryStorage() });
 /**
@@ -135,6 +136,15 @@ async function listWords(req: Request, res: Response) {
     res.send(JSON.stringify(rev[1], null, 2));
   }
 }
-
+async function postWord(req: Request, res: Response) {
+  let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+  let rev = await util.addWord(req.app.get('stt_service').credentials, id[1], req.body.word, req.body.soundslike, req.body.display )
+  if (rev) {
+    res.send(rev);
+  } else {
+    req.query.word = req.body.word;
+    getWord(req, res);
+  }
+}
 export { getSTT, postSTT, uploadWav, getCorpus, postCorpus,
-  getCorpusStatus, postTrain,  getLMStatus, listWords};
+  getCorpusStatus, postTrain,  getLMStatus, listWords, postWord};
