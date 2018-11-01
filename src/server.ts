@@ -8,6 +8,7 @@ import * as express from 'express';
 import * as session from 'express-session';
 import * as path from 'path';
 import * as util from './util';
+import * as crypto from 'crypto';
 import * as passport from 'passport';
 import expressValidator = require('express-validator');
 
@@ -46,7 +47,7 @@ class App {
     this.express.use(session({
       resave: true,
       saveUninitialized: true,
-      secret: process.env.SESSION_SECRET,
+      secret: crypto.randomBytes(64).toString('hex'),
     }));
     this.express.use(bodyParser.json());
     this.express.use(bodyParser.urlencoded({ extended: true }));
