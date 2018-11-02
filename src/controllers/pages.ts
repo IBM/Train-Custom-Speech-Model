@@ -130,12 +130,12 @@ async function getLMStatus(req: Request, res: Response) {
 
 async function listWords(req: Request, res: Response) {
   let rev = await util.listWords(req.app.get('stt_service').credentials, req.user.customModel);
-  if (rev[0]) {
-    res.send(rev[0]);
-  } else {
-    res.send(JSON.stringify(rev[1], null, 2));
-  }
+  res.render('pages/list-words', {
+    words: (rev[1] ? rev[1].words : []),
+    error: rev[0],
+  });
 }
+
 async function postWord(req: Request, res: Response) {
   let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
   let rev = await util.addWord(req.app.get('stt_service').credentials, id[1], req.body.word, req.body.soundslike, req.body.display )
@@ -146,5 +146,6 @@ async function postWord(req: Request, res: Response) {
     getWord(req, res);
   }
 }
+
 export { getSTT, postSTT, uploadWav, getCorpus, postCorpus,
   getCorpusStatus, postTrain,  getLMStatus, listWords, postWord};
