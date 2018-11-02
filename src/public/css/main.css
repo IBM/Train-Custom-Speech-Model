@@ -33,3 +33,25 @@
     left: 50%;
     transform: translatex(-50%);
 }
+
+.edit-icon {
+  margin-top: 3px;
+}
+
+.word-icons a, .word-icons a:visited  {
+  color: black;
+  text-decoration: none;
+}
+
+.word-icons a:hover {
+  color: #a1a1a1;
+  cursor: pointer;
+}
+
+table tbody tr td.word-edit-row {
+  padding: 0;
+}
+
+a.add-link:hover {
+  cursor: pointer;
+}

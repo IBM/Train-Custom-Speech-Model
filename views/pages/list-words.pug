@@ -1,0 +1,37 @@
+extends /layout.pug
+
+append scripts
+  script(src='/js/words.js')
+
+block content
+  .container.text-center
+    h2 Custom Words
+    .center-page.responsive
+      if error
+        div(class='alert alert-danger' role='alert')
+          span(class='glyphicon glyphicon-exclamation-sign' aria-hidden='true')
+          span(class='sr-only') Error
+          | &nbsp;
+          = error
+      table(class='table table-hover table-bordered text-center')
+        tbody
+          each word in words
+            tr
+              td= word.word
+              td(class='word-icons')
+                a(class='edit-link' data-toggle='collapse' data-target='#'+word.word class='accordion-toggle')
+                  span(class='glyphicon glyphicon-edit edit-icon')
+                | &nbsp;
+                a(class='delete-link')
+                  span(class='glyphicon glyphicon-trash edit-icon')
+            tr
+              td(colspan='2' class='word-edit-row')
+                div(class='accordian-body collapse', id=word.word)
+                  h5
+                    strong Sounds-Like Entries:
+                  each sound in word.sounds_like
+                       p= sound
+                  h6
+                    | Add 'Sounds-Like' Text &nbsp;
+                    a(class='add-link')
+                      span(class='glyphicon glyphicon-plus')
