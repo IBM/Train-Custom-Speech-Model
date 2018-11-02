@@ -85,7 +85,7 @@ export function getCustomModelId(credentials: STTCredential, modelName: string):
     }
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     speech.listLanguageModels(null, (error: any, languageModels: any) => {
       if (error) {
         return resolve([error]);
@@ -108,7 +108,7 @@ export function getCustomModelId(credentials: STTCredential, modelName: string):
           description: `Custom model for ${credentials.username}`,
         }, function(error, languageModel) {
         if (error) {
-          return reject(error);
+          return resolve([error]);
         } else {
           models.push({name: modelName, id: languageModel.customization_id});
           return resolve([undefined, languageModel.customization_id]);
@@ -249,7 +249,8 @@ export async function listWords(credentials: STTCredential, model: string): Prom
  * Login Required middleware.
  */
 export function isAuthenticated (req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated() || req.path === "/user/login" || req.path.match(/^\/(css|js)/)) {
+  if (req.isAuthenticated() || req.path === "/user/login"
+      || req.path.match(/^\/(css|js|favicon)/)) {
     return next();
   }
   req.session.returnTo = req.path;

@@ -42,7 +42,6 @@ async function postSTT (req: Request, res: Response) {
   let types = ['wav', 'mp3', 'flac'];
   let type = req.file.originalname.split('.').pop();
   if (types.indexOf(type) == -1) {
-    console.log("Wrong file type");
     return res.render('pages/stt', {
       title: 'Speech to Text',
       error: `File extension must be ${types.join(',')}`,
@@ -64,20 +63,24 @@ async function postSTT (req: Request, res: Response) {
     delete recognizeParams.model;
   }
   speechToText.recognize(recognizeParams, (error: any, results: any) => {
-    if (error) {
-      res.send(error);
-    } else {
-      let index = results['result_index'] || 0;
-      let result = results.results[index];
-      if (!result) {
-        res.send('no result!');
-      } else {
-        res.render('pages/custom-lm', {
-          title: 'Custom Language Model',
-          customModel: req.user.customModel,
-          text: result.alternatives[0].transcript
-        });
-      }
+    if (error || !results.results[0]) {
+      return res.render('pages/stt', {
+        title: 'Speech to Text',
+        error: error || `no transcription!`,
+        options: [
+          {name: 'en-US_BroadbandModel', value: 'en-US_BroadbandModel'},
+          {name: req.user.customModel, value: req.user.customModel}
+        ]
+      });
+    }  else {
+      let transcript = results.results.map( (result:any) => {
+        return result.alternatives[0].transcript;
+      });
+      res.render('pages/custom-lm', {
+        title: 'Custom Language Model',
+        customModel: req.user.customModel,
+        text: transcript.join('')
+      });
     }
   });
 
