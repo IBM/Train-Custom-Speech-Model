@@ -1,7 +1,6 @@
 'use strict';
 
 import * as fs from 'fs';
-import * as stream from 'stream';
 import { Request, Response, NextFunction } from 'express';
 import * as cfenv from 'cfenv';
 import * as path from 'path';
@@ -121,12 +120,10 @@ export function getCustomModelId(credentials: STTCredential, modelName: string):
 
 export function addCorpus(credentials: STTCredential, modelId: string, corpusName: string, corpus: string) {
   let speech = getSTTV1(credentials);
-  let bufferStream = new stream.PassThrough();
-  bufferStream.end(Buffer.from(corpus));
 
   var addCorpusParams = {
     customization_id: modelId,
-    corpus_file: bufferStream,
+    corpus_file: Buffer.from(corpus),
     corpus_name: corpusName,
     allow_overwrite: true
   };

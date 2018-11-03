@@ -9,7 +9,7 @@ function afterBodyLoaded() {
       document.getElementById('language').innerHTML = result.language;
       document.getElementById('status').innerHTML = result.status;
       let button = document.getElementById('formButton');
-      if (result.status === 'available') {
+      if (['available', 'ready'].indexOf(result.status) >= 0) {
         button.innerHTML = 'Try it';
         button.disabled = false;
       } else {
