@@ -1,0 +1,115 @@
+import React, { Component } from 'react';
+import {
+  Button, FormGroup, FormControl, ControlLabel, InputGroup, Glyphicon
+} from 'react-bootstrap';
+import AlertDismissable from '../components/AlertDismissable';
+import './Login.css';
+
+/**
+ * Class to handle the rendering of the Login page.
+ * @extends React.Component
+ */
+export default class Login extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      username: '',
+      password: '',
+      error: ''
+    };
+  }
+
+  validateForm() {
+    return this.state.username.length > 0 && this.state.password.length > 0;
+  }
+
+  handleChange = event => {
+    this.setState({
+      [event.target.id]: event.target.value
+    });
+  }
+
+  handleSubmit = async event => {
+    event.preventDefault();
+    fetch('/api/login', {
+      method: 'POST',
+      body: JSON.stringify({'username': this.state.username, 'password': this.state.password}),
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        response.json().then((data) => {
+          localStorage.setItem('username', data.user.username);
+          localStorage.setItem('customModel', data.user.customModel);
+          this.props.userHasAuthenticated(true);
+        });
+      }
+      else {
+        this.setState({
+          error: 'Could not authenticate. Please ensure your credentials are correct.'
+        });
+      }
+    })
+    .catch((err) => {
+      console.log('Could not authenticate: ', err);
+      this.setState({ error: 'Could not authenticate: ' + err });
+    });
+  }
+
+  handleDismiss = event => {
+    this.setState({ error: '' });
+  }
+
+  render() {
+    return (
+      <div className="Login">
+        <form onSubmit={this.handleSubmit}>
+          <FormGroup controlId="username" bsSize="large">
+            <ControlLabel>Username</ControlLabel>
+            <InputGroup>
+              <InputGroup.Addon><Glyphicon glyph="user" /></InputGroup.Addon>
+              <FormControl
+                autoFocus
+                type="text"
+                value={this.state.username}
+                onChange={this.handleChange}
+                placeholder="Username"
+                autoComplete="username"
+              />
+            </InputGroup>
+          </FormGroup>
+          <FormGroup controlId="password" bsSize="large">
+            <ControlLabel>Password</ControlLabel>
+            <InputGroup>
+              <InputGroup.Addon><Glyphicon glyph="lock" /></InputGroup.Addon>
+              <FormControl
+                value={this.state.password}
+                onChange={this.handleChange}
+                type="password"
+                placeholder="Password"
+                autoComplete="current-password"
+              />
+            </InputGroup>
+          </FormGroup>
+          <Button
+            block
+            bsSize="large"
+            disabled={!this.validateForm()}
+            type="submit"
+          >
+            Log In
+          </Button>
+          <AlertDismissable
+            title="Login Error"
+            message={this.state.error}
+            show={this.state.error}
+            onDismiss={this.handleDismiss} />
+        </form>
+      </div>
+    );
+  }
+}

@@ -5,10 +5,9 @@
   "main": "npm run-script start",
   "scripts": {
     "start": "npm run build && npm run serve",
-    "build": "tsc && npm run copy-static",
+    "build": "tsc",
     "serve": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "copy-static": "node tools/copyStatic.js",
     "client": "cd client && npm run start",
     "server": "node dist/server.js",
     "dev": "concurrently --kill-others-on-fail \"npm run start\" \"npm run client\""
@@ -48,7 +47,6 @@
     "multer": "^1.3.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
-    "pug": "^2.0.3",
     "watson-developer-cloud": "^3.9.0"
   }
 }

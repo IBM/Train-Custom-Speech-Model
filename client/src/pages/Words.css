@@ -1,0 +1,79 @@
+.Words {
+  text-align: center;
+  margin-top: 20px;
+  display: block;
+  margin: 0 auto;
+  max-width: 900px;
+  min-width: 350px;
+}
+
+.Words table {
+  margin-top: 20px;
+}
+
+
+.Words td, th {
+  text-align: center;
+}
+
+.Words .tableload.glyphicon {
+  margin-right: 7px;
+  margin-top: 20px;
+  animation: spin 1s infinite linear;
+  font-size: 42px;
+  color: #888;
+}
+
+@keyframes spin {
+  from { transform: scale(1) rotate(0deg); }
+  to { transform: scale(1) rotate(360deg); }
+}
+
+.Words .panel-heading .badge {
+  background-color: #aaa;
+}
+
+.Words .panel {
+  max-width: 400px;
+  margin: 5px auto;
+}
+
+.Words .panel-body {
+  padding: 10px;
+}
+
+.Words .panel-option {
+  float: right;
+}
+
+.Words .panel-option:hover {
+  color: #0765D0;
+}
+
+.Words .panel-trash {
+  float: right;
+  margin-left: 2px;
+  cursor: pointer;
+}
+
+.Words .panel-trash:hover {
+  color: #950005;
+}
+
+.Words .panel-trash:active {
+  color: #5A0003;
+}
+
+.Words .panel .panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #444;
+}
+
+.Words .soundslike {
+  font-size: 12px;
+}
+
+.Words .soundslike textarea {
+  font-size: 12px;
+}

@@ -1,0 +1,32 @@
+.Train {
+  padding: 20px 0;
+  text-align: center;
+}
+
+.Train .LoadButton {
+  width: 200px;
+  margin: 0 auto;
+  margin-bottom: 15px;
+}
+
+.Train .modelstatus {
+  padding: 10px 5px 20px 5px;
+}
+
+.Train .loadingstatus.glyphicon {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  animation: spin 1s infinite linear;
+  font-size: 42px;
+  color: #888;
+}
+
+.Train .training.glyphicon {
+  margin-right: 7px;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  from { transform: scale(1) rotate(0deg); }
+  to { transform: scale(1) rotate(360deg); }
+}
