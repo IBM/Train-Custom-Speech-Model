@@ -20,7 +20,7 @@ When the reader has completed this journey, they will understand how to:
 3. The user uses the provided web front-end to run training using the batch of data.
 4. The user interactively tests the new custom Speech model by speaking phrases to the computer microphone and verify the text transcription returned from the model.
 5. If the text transcription is not correct, the user can make correction and resubmit the updated data for training.
-6. Several users can work on the same custom model at the same time.  
+6. Several users can work on the same custom model at the same time.
 
 
 ## Included components
@@ -43,11 +43,11 @@ Download the code and run locally on your computer.
 
 
 1. [Clone the repo](#1-clone-the-repo)
-2. 
-3. 
-4. 
-5. 
-5. 
+2.
+3.
+4.
+5.
+5.
 
 ### 1. Clone the repo
 
