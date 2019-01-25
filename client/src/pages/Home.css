@@ -1,0 +1,43 @@
+.Home .lander {
+  text-align: center;
+}
+
+.Home .lander h1 {
+  font-weight: 600;
+}
+
+.Home .lander p {
+  color: #999;
+}
+
+.Home .tilecontainer {
+  max-width: 600px;
+}
+
+.Home .menubutton {
+  display: block;
+  max-width: 300px;
+  min-height: 150px;
+  background: #444;
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  margin: 10px auto;
+  text-decoration: none;
+  font-size: 24px;
+}
+
+.Home .menubutton:hover {
+  background: #6e6e6e;
+}
+
+.Home .menubutton:active {
+  background: #8e8e8e;
+}
+
+.Home .menubutton .glyphicon {
+  padding-top: 20px;
+  font-size: 42px;
+}
