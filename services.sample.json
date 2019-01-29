@@ -1,0 +1,15 @@
+{
+  "services": {
+    "code-pattern-custom-language-model": [
+      {
+        "credentials": {
+          "password": "<your password>",
+          "url": "https://stream.watsonplatform.net/speech-to-text/api",
+          "username": "<your username>"
+        },
+        "label": "speech_to_text",
+        "name": "code-pattern-custom-language-model"
+      }
+    ]
+  }
+}
