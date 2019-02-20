@@ -57,16 +57,24 @@ export function getCfenv () {
 }
 
 export function getSTTV1 (credentials: STTCredential) {
-  return new SpeechToTextV1({
-    username: credentials.username,
-    password: credentials.password,
-    url: credentials.url
-  });
+  let options;
+  if (credentials.apikey) {
+    options = { iam_apikey: credentials.apikey, url: credentials.url };
+  }
+  else {
+    options = {
+      username: credentials.username,
+      password: credentials.password,
+      url: credentials.url
+    };
+  }
+  return new SpeechToTextV1(options);
 }
 
 export interface STTCredential {
-  username: string;
-  password: string;
+  username?: string;
+  password?: string;
+  apikey?: string;
   url: string;
 }
 

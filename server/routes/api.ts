@@ -23,7 +23,6 @@ class Api {
     this.router.get('/words', apiController.getWords);
     this.router.post('/words', apiController.addWord);
     this.router.delete('/words/:name', apiController.deleteWord);
-    
     // User endpoints
     this.router.post('/login', userController.postLogin);
     this.router.post('/logout', userController.postLogout);
