@@ -78,6 +78,5 @@ export let getUser = (req: Request, res: Response) => {
  */
 export let postLogout = (req: Request, res: Response) => {
   req.logout();
-  console.log('in Logout');
   res.status(200).send('OK');
 };
