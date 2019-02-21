@@ -40,7 +40,7 @@ async function postTranscribe (req: Request, res: Response) {
     model: 'en-US_BroadbandModel'
   };
 
-  let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+  let id = await util.getCustomModelId(req);
   if (req.body.model !== 'en-US_BroadbandModel') {
     recognizeParams.customization_id = id[1];
     delete recognizeParams.model;
@@ -65,7 +65,7 @@ async function postTranscribe (req: Request, res: Response) {
 };
 
 async function getModel(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+  let id = await util.getCustomModelId(req);
   let result = await util.getLanguageModel(req.app.get('stt_service').credentials, id[1]);
   if (result[0]) {
     return res.status(result[0].code).json({
@@ -79,7 +79,7 @@ async function getModel(req: Request, res: Response) {
 }
 
 async function postCorpus(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+  let id = await util.getCustomModelId(req);
   let result = await util.addCorpus(req.app.get('stt_service').credentials, id[1], req.body.corpusName, req.body.corpus);
 
   if (result[0]) {
@@ -95,7 +95,7 @@ async function postCorpus(req: Request, res: Response) {
 
 async function deleteCorpus(req: Request, res: Response) {
   if (req.params.name) {
-    let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+    let id = await util.getCustomModelId(req);
     let result = await util.deleteCorpus(req.app.get('stt_service').credentials, id[1], req.params.name);
     if (result[0]) {
       return res.status(result[0].code).json({
@@ -115,7 +115,7 @@ async function deleteCorpus(req: Request, res: Response) {
 }
 
 async function getCorpora(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+  let id = await util.getCustomModelId(req);
   let corpora = await util.getCorpora(req.app.get('stt_service').credentials, id[1]);
   if (corpora[0]) {
     return res.status(corpora[0].code).json({
@@ -129,7 +129,7 @@ async function getCorpora(req: Request, res: Response) {
 }
 
 async function getWords(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+  let id = await util.getCustomModelId(req);
   let words = await util.listWords(req.app.get('stt_service').credentials, id[1]);
   if (words[0]) {
     return res.status(500).json({
@@ -143,7 +143,7 @@ async function getWords(req: Request, res: Response) {
 }
 
 async function addWord(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+  let id = await util.getCustomModelId(req);
   let result = await util.addWord(
     req.app.get('stt_service').credentials, id[1], req.body.word,
     req.body.sounds_like, req.body.display_as
@@ -162,7 +162,7 @@ async function addWord(req: Request, res: Response) {
 
 async function deleteWord(req: Request, res: Response) {
   if (req.params.name) {
-    let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+    let id = await util.getCustomModelId(req);
     let result = await util.deleteWord(req.app.get('stt_service').credentials, id[1], req.params.name);
     if (result[0]) {
       return res.status(result[0].code).json({
@@ -182,7 +182,7 @@ async function deleteWord(req: Request, res: Response) {
 }
 
 async function trainModel(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req.app.get('stt_service').credentials, req.user.customModel);
+  let id = await util.getCustomModelId(req);
   let result = await util.trainModel(req.app.get('stt_service').credentials, id[1]);
   if (result[0]) {
     return res.status(result[0].code).json({

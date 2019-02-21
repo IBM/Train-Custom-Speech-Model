@@ -57,24 +57,31 @@ export function getCfenv () {
 }
 
 export function getSTTV1 (credentials: STTCredential) {
-  let options;
-  if (credentials.apikey) {
-    options = { iam_apikey: credentials.apikey, url: credentials.url };
-  }
-  else {
-    options = {
-      username: credentials.username,
-      password: credentials.password,
-      url: credentials.url
-    };
+  let options: any = Object.create(credentials);
+  if ((<STTCredentialAPIKey>credentials).apikey) {
+    options.iam_apikey = (<STTCredentialAPIKey>credentials).apikey;
   }
   return new SpeechToTextV1(options);
 }
 
-export interface STTCredential {
-  username?: string;
-  password?: string;
-  apikey?: string;
+export type STTCredential = STTCredentialUserPass | STTCredentialAPIKey;
+
+/**
+ * If the service is not using IAM yet, the credential would
+ * be username and password.
+ */
+export interface STTCredentialUserPass {
+  username: string;
+  password: string;
+  url: string;
+}
+
+/**
+ * If the service is using IAM, the credential would be
+ * api key.
+ */
+export interface STTCredentialAPIKey {
+  apikey: string;
   url: string;
 }
 
@@ -85,10 +92,23 @@ interface CustomModel {
 
 let models: CustomModel[] = [];
 
-export function getCustomModelId(credentials: STTCredential, modelName: string): Promise<any[]> {
+/**
+ * Get or create the custom model that belongs to the current
+ * user and return the model id.
+ * @param req The Request object of the express middleware
+ */
+export function getCustomModelId(req: Request): Promise<any[]> {
+  let credentials = req.app.get('stt_service').credentials;
+  let modelName = req.user.customModel;
+
+  if (req.user.model_id) {
+    return Promise.resolve([undefined, req.user.model_id]);
+  }
+
   let speech = getSTTV1(credentials);
   for (let index = 0, len = models.length; index < len; index++) {
     if (models[index].name === modelName) {
+      req.user.model_id =  models[index].id;
       return Promise.resolve([undefined, models[index].id]);
     }
   }
@@ -103,6 +123,7 @@ export function getCustomModelId(credentials: STTCredential, modelName: string):
           for (let index = 0, len = customModels.length; index < len; index++) {
             if (customModels[index].name === modelName) {
               models.push({name: modelName, id: customModels[index].customization_id});
+              req.user.model_id =  customModels[index].customization_id;
               return resolve([undefined, customModels[index].customization_id]);
             }
           }
@@ -113,12 +134,13 @@ export function getCustomModelId(credentials: STTCredential, modelName: string):
         {
           name: modelName,
           base_model_name: 'en-US_BroadbandModel',
-          description: `Custom model for ${credentials.username}`,
+          description: `Custom model for ${req.user.username}`,
         }, function(error, languageModel) {
         if (error) {
           return resolve([error]);
         } else {
           models.push({name: modelName, id: languageModel.customization_id});
+          req.user.model_id = languageModel.customization_id;
           return resolve([undefined, languageModel.customization_id]);
         }
       });
@@ -150,7 +172,6 @@ export function addCorpus(credentials: STTCredential, modelId: string, corpusNam
 export function addWord(credentials: STTCredential, modelId: string, word: string,
   soundsLike?: string[], displayAs?: string ): Promise<any[]> {
 
-  console.log(soundsLike);
   let speech = getSTTV1(credentials);
   let addWordParams = {
     customization_id: modelId,
