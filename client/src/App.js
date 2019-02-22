@@ -27,6 +27,7 @@ class App extends Component {
           response.json().then((data) => {
             localStorage.setItem('username', data.user.username);
             localStorage.setItem('customModel', data.user.customModel);
+            localStorage.setItem('customAcousticModel', data.user.customAcousticModel);
           });
         }
         this.setState({ isAuthenticating: false });
@@ -85,6 +86,9 @@ class App extends Component {
               </LinkContainer>
               <LinkContainer to="/words">
                 <NavItem>Words</NavItem>
+              </LinkContainer>
+              <LinkContainer to="/audio">
+                <NavItem>Audio</NavItem>
               </LinkContainer>
               <LinkContainer to="/train">
                 <NavItem>Train</NavItem>

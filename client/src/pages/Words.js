@@ -107,7 +107,7 @@ export default class Words extends Component {
   render() {
     return (
       <div className="Words">
-        <h2>Custom Word List</h2>
+        <h2>Custom Word List ({this.state.words.length})</h2>
         <p>These are the out-of-vocabulary words extracted from all the submitted corpora.</p>
         { this.state.isLoading && <Glyphicon glyph="refresh" className="tableload" /> }
         { !this.state.isLoading && this.state.words.length > 0 &&

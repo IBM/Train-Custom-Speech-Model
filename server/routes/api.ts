@@ -14,7 +14,15 @@ class Api {
     // General STT API endpoints.
     this.router.get('/model', apiController.getModel);
     this.router.post('/transcribe', apiController.uploadAudio, apiController.postTranscribe);
+
     this.router.post('/train', apiController.trainModel);
+    this.router.post('/train-acoustic', apiController.trainAcousticModel);
+
+    this.router.get('/acoustic-model', apiController.getAcousticModel);
+
+    this.router.get('/audio', apiController.listAudio);
+    this.router.delete('/audio/:name', apiController.deleteAudio);
+    this.router.post('/audio', apiController.uploadAudio, apiController.postAudio);
 
     this.router.get('/corpora', apiController.getCorpora);
     this.router.delete('/corpora/:name', apiController.deleteCorpus);

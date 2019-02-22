@@ -1,10 +1,12 @@
 {
   "user1": {
     "password": "user1",
-    "customModel": "custom-model-1"
+    "customModel": "custom-model-1",
+    "customAcousticModel": "Acoustic model 1"
   },
   "user2": {
     "password": "user2",
-    "customModel": "custom-model-2"
+    "customModel": "custom-model-2",
+    "customAcousticModel": "Acoustic model 1"
   }
 }

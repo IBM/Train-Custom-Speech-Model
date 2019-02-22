@@ -16,7 +16,8 @@ interface RecognizeParams {
   audio: stream.Readable;
   content_type: string;
   model: string;
-  customization_id?: string;
+  language_customization_id?: string;
+  acoustic_customization_id?: string;
 }
 
 /**
@@ -37,13 +38,17 @@ async function postTranscribe (req: Request, res: Response) {
   let recognizeParams: RecognizeParams = {
     audio: bufferStream,
     content_type: `audio/${type}`,
-    model: 'en-US_BroadbandModel'
+    model: 'en-US_NarrowbandModel'
   };
 
   let id = await util.getCustomModelId(req);
-  if (req.body.model !== 'en-US_BroadbandModel') {
-    recognizeParams.customization_id = id[1];
-    delete recognizeParams.model;
+  if (req.body.languageModel !== 'en-US_NarrowbandModel') {
+    recognizeParams.language_customization_id = id[1];
+  }
+
+  id = await util.getCustomAcousticModelId(req);
+  if (req.body.acousticModel !== 'en-US_NarrowbandModel') {
+    recognizeParams.acoustic_customization_id = id[1];
   }
 
   speechToText.recognize(recognizeParams, (error: any, results: any) => {
@@ -74,6 +79,82 @@ async function getModel(req: Request, res: Response) {
   } else {
     return res.status(200).json({
       data: result[1]
+    });
+  }
+}
+
+async function getAcousticModel(req: Request, res: Response) {
+  let id = await util.getCustomAcousticModelId(req);
+  let result = await util.getAcousticModel(req.app.get('stt_service').credentials, id[1]);
+  if (result[0]) {
+    return res.status(result[0].code || 500).json({
+      error: result[0]
+    });
+  } else {
+    return res.status(200).json({
+      data: result[1]
+    });
+  }
+}
+
+async function postAudio(req: Request, res: Response) {
+  let bufferStream = new stream.PassThrough();
+  bufferStream.end( req.file.buffer );
+
+  let id = await util.getCustomAcousticModelId(req);
+  let type = req.file.originalname.split('.').pop();
+
+  let params = {
+    customization_id: id[1],
+    content_type: 'audio/' + type,
+    audio_resource: bufferStream,
+    audio_name: req.body.corpusName + '-audio'
+  };
+
+  let result = await util.addAudio(req.app.get('stt_service').credentials, params);
+
+  if (result[0]) {
+    return res.status(result[0].code || 500).json({
+      error: result[0]
+    });
+  } else {
+    return res.status(200).json({
+      status: 'added'
+    });
+  }
+}
+
+async function listAudio(req: Request, res: Response) {
+  let id = await util.getCustomAcousticModelId(req);
+  let audioResources = await util.listAudio(req.app.get('stt_service').credentials, id[1]);
+  if (audioResources[0]) {
+    return res.status(audioResources[0].code || 500).json({
+      error: audioResources[0]
+    });
+  } else {
+    return res.status(200).json({
+      audio: audioResources[1].audio
+    });
+  }
+}
+
+async function deleteAudio(req: Request, res: Response) {
+  if (req.params.name) {
+    let id = await util.getCustomAcousticModelId(req);
+    let result = await util.deleteAudio(req.app.get('stt_service').credentials, id[1], req.params.name);
+    if (result[0]) {
+      return res.status(result[0].code || 500).json({
+        error: result[0]
+      });
+    } else {
+      return res.status(200).json({
+        audioName: result[1],
+        status: 'deleted'
+      });
+    }
+  } else {
+    return res.status(400).json({
+      error: 'No audio name specified.'
     });
   }
 }
@@ -195,5 +276,26 @@ async function trainModel(req: Request, res: Response) {
   }
 }
 
-export { uploadAudio, postTranscribe, getModel, deleteCorpus, postCorpus, getCorpora, getWords,
-  addWord, deleteWord, trainModel };
+async function trainAcousticModel(req: Request, res: Response) {
+  let id = await util.getCustomAcousticModelId(req);
+
+  // Get the customization ID of the custom language model to pass in for training.
+  let langId = await util.getCustomModelId(req);
+
+  let result = await util.trainAcousticModel(req.app.get('stt_service').credentials, id[1], langId[1]);
+  if (result[0]) {
+    return res.status(result[0].code).json({
+      error: result[0]
+    });
+  } else {
+    return res.status(200).json({
+      status: 'started'
+    });
+  }
+}
+
+export {
+  uploadAudio, postTranscribe, getModel, getAcousticModel, deleteCorpus, postCorpus,
+  postAudio, listAudio, deleteAudio, getCorpora, getWords,
+  addWord, deleteWord, trainModel, trainAcousticModel
+};

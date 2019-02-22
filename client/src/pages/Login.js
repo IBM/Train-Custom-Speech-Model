@@ -45,6 +45,7 @@ export default class Login extends Component {
         response.json().then((data) => {
           localStorage.setItem('username', data.user.username);
           localStorage.setItem('customModel', data.user.customModel);
+          localStorage.setItem('customAcousticModel', data.user.customAcousticModel);
           this.props.userHasAuthenticated(true);
         });
       }

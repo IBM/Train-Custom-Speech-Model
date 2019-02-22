@@ -18,6 +18,7 @@ export default class Train extends Component {
       isAcousticSubmitting: false,
       isAcousticStatusLoading: false,
       languageModelData: null,
+      acousticModelData: null,
       languageModelError: '',
       acousticModelError: ''
     };
@@ -25,6 +26,7 @@ export default class Train extends Component {
 
   async componentDidMount() {
     this.getStatusLanguageModel();
+    this.getStatusAcousticModel();
   }
 
   componentWillUnmount() {
@@ -53,6 +55,31 @@ export default class Train extends Component {
       console.log('Could not authenticate: ', err);
       this.setState({ error: 'Error initializing the training: ' + err });
       this.setState({ isLanguageSubmitting: false });
+    });
+  }
+
+  trainAcousticModel = async event => {
+    event.preventDefault();
+    this.setState({ isAcousticSubmitting: true });
+    fetch('/api/train-acoustic', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        response.json().then((data) => {
+          this.getStatusAcousticModel();
+        });
+      }
+      else {
+        this.setState({ error: 'Error initializing the training.' });
+      }
+      this.setState({ isAcousticSubmitting: false });
+    })
+    .catch((err) => {
+      console.log('Could not authenticate: ', err);
+      this.setState({ error: 'Error initializing the training: ' + err });
+      this.setState({ isAcousticSubmitting: false });
     });
   }
 
@@ -105,6 +132,10 @@ export default class Train extends Component {
     this.getStatusLanguageModel(true);
   }
 
+  pollAcousticModelStatus = async () => {
+    this.getStatusAcousticModel(true);
+  }
+
   getStatusLanguageModel = async (poll = false) => {
     if (!poll) this.setState({ isLanguageStatusLoading: true });
     fetch('/api/model', {
@@ -135,6 +166,39 @@ export default class Train extends Component {
       console.log('Error getting language model data: ', err);
       this.setState({ languageModelError: 'Error getting language model data: ' + err });
       if (!poll) this.setState({ isLanguageStatusLoading: false });
+    });
+  }
+
+  getStatusAcousticModel = async (poll = false) => {
+    if (!poll) this.setState({ isAcousticStatusLoading: true });
+    fetch('/api/acoustic-model', {
+      method: 'GET',
+      credentials: 'include'
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        response.json().then((data) => {
+          this.setState({ acousticModelData: data.data });
+          let isNotActive = this.checkModelStatusDone(data.data.status);
+          // If polling and if the model is no longer in an active state, stop polling.
+          if (isNotActive && poll) {
+            clearInterval(this.interval);
+          }
+          // If it is in an active state, initiate the polling.
+          else if (!isNotActive && !poll) {
+            this.interval = setInterval(this.pollAcousticModelStatus, 5000);
+          }
+        });
+      }
+      else {
+        this.setState({ acousticModelError: 'Error getting acoustic model data.' });
+      }
+      if (!poll) this.setState({ isAcousticStatusLoading: false });
+    })
+    .catch((err) => {
+      console.log('Error getting acoustic model data: ', err);
+      this.setState({ acousticModelError: 'Error getting acoustic model data: ' + err });
+      if (!poll) this.setState({ isAcousticStatusLoading: false });
     });
   }
 
@@ -185,11 +249,36 @@ export default class Train extends Component {
           </Col>
           <Col md={6}>
             <h3>Acoustic Model Status</h3>
-            <div className="modelstatus">
-              <Well>
-                <p>Under Construction</p>
-              </Well>
-            </div>
+            <Well>
+            {this.state.isAcousticStatusLoading &&
+              <Glyphicon glyph="refresh" className="loadingstatus" />
+            }
+            {this.state.acousticModelData && !this.state.isAcousticStatusLoading &&
+              <div className="modelstatus">
+                <strong>Name:</strong> {this.state.acousticModelData.name}<br />
+                <strong>Status:</strong>{' '}
+                <span className={this.getStatusColor(this.state.acousticModelData.status)}>
+                  {this.state.acousticModelData.status}{' '}
+                  {this.state.acousticModelData.status ==='training' &&
+                    <Glyphicon glyph="refresh" className="training" />
+                  }
+                </span>
+              </div>
+            }
+            </Well>
+            <LoadButton
+             block
+             bsStyle="primary"
+             type="button"
+             disabled={
+               this.state.isAcousticStatusLoading ||
+               !this.checkModelTrainable(this.state.acousticModelData)
+             }
+             isLoading={this.state.isAcousticSubmitting}
+             onClick={this.trainAcousticModel}
+             text="Train Acoustic Model"
+             loadingText="Initializing…"
+            />
           </Col>
         </Row>
         </Grid>

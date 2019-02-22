@@ -1,19 +1,19 @@
 import React, { Component } from 'react';
 import { Button, Table, Glyphicon } from 'react-bootstrap';
-import './Corpora.css';
+import './Audio.css';
 
 /**
- * Class to handle the rendering of the Corpora page where a list of all corpora for the user's
- * custom model is displayed.
+ * Class to handle the rendering of the Audio page where a list of all audio resources
+ * for the user's custom acoustic model is displayed.
  * @extends React.Component
  */
-export default class Corpora extends Component {
+export default class Audio extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       isLoading: false,
-      corpora: [],
+      audio: [],
       error: '',
       isDeleting: false,
     };
@@ -21,46 +21,46 @@ export default class Corpora extends Component {
 
   async componentDidMount() {
     this.handleGetList();
-    this.interval = setInterval(this.pollCorpora, 3000);
+    this.interval = setInterval(this.pollAudio, 3000);
   }
 
   componentWillUnmount() {
    clearInterval(this.interval);
   }
 
-  checkCorporaProcessing = () => {
+  checkAudioProcessing = () => {
     let being_processed = function(element) {
       return element.status === 'being_processed';
     };
-    return this.state.corpora.some(being_processed);
+    return this.state.audio.some(being_processed);
   }
 
   /**
-   * Sort the given list of corpora, first by status, then by name. We sort by status first
-   * to make sure the corpora being processed are listed at the top.
+   * Sort the given list of audio, first by status, then by name. We sort by status first
+   * to make sure the audio being processed are listed at the top.
    */
-  sortCorpora = corpora => {
-    corpora.sort((a, b) => {
+  sortAudio = audio => {
+    audio.sort((a, b) => {
       if (a.status === b.status) {
         return (a.name < b.name) ? -1 : ((a.name > b.name) ? 1 : 0);
       }
-      return (a.status > b.status) ? -1 : ((a.status < b.status) ? 1 : 0);
+      return (a.status < b.status) ? -1 : ((a.status > b.status) ? 1 : 0);
     });
-    return corpora;
+    return audio;
   }
 
 
-  pollCorpora = async () => {
-    fetch('/api/corpora', {
+  pollAudio = async () => {
+    fetch('/api/audio', {
       method: 'GET',
       credentials: 'include'
     })
     .then((response) => {
       if (response.status === 200) {
         response.json().then((data) => {
-          let sortedCorpora = this.sortCorpora(data.corpora);
-          this.setState({ corpora: sortedCorpora });
-          if (!this.checkCorporaProcessing()) {
+          let sortedAudio = this.sortAudio(data.audio);
+          this.setState({ audio: sortedAudio });
+          if (!this.checkAudioProcessing()) {
             clearInterval(this.interval);
           }
         });
@@ -70,29 +70,29 @@ export default class Corpora extends Component {
 
   handleGetList = async () => {
     this.setState({ isLoading: true });
-    fetch('/api/corpora', {
+    fetch('/api/audio', {
       method: 'GET',
       credentials: 'include'
     })
     .then((response) => {
       if (response.status === 200) {
         response.json().then((data) => {
-          let sortedCorpora = this.sortCorpora(data.corpora);
-          this.setState({ corpora: sortedCorpora });
+          let sortedAudio = this.sortAudio(data.audio);
+          this.setState({ audio: sortedAudio });
         });
       }
       this.setState({ isLoading: false });
     })
     .catch((err) => {
       this.setState({ error: err });
-      console.log('Error getting corpora.', err);
+      console.log('Error getting audio.', err);
       this.setState({ isLoading: false });
     });
   }
 
-  handleDelete = async corpusName => {
+  handleDelete = async audioName => {
     this.setState({ isDeleting: true });
-    fetch('/api/corpora/' + corpusName, {
+    fetch('/api/audio/' + audioName, {
       method: 'DELETE',
       credentials: 'include'
     })
@@ -101,7 +101,7 @@ export default class Corpora extends Component {
         this.handleGetList();
       }
       else {
-        this.setState({ error: 'There was a problem deleting the corpus.' });
+        this.setState({ error: 'There was a problem deleting the audio resource.' });
       }
       this.setState({ isDeleting: false });
     })
@@ -113,37 +113,37 @@ export default class Corpora extends Component {
 
   render() {
     return (
-      <div className="Corpora">
-        <h2>Corpus List</h2>
-        <p>After new corpora have been analyzed, you must initialize
-           a <a href="/train" title="Train">training session</a> for the custom language model
+      <div className="Audio">
+        <h2>Audio Resource List</h2>
+        <p>After a new audio resource has been added and processed, you must initialize
+           a <a href="/train" title="Train">training session</a> for the custom acoustic model
            with the new data.
         </p>
         { this.state.isLoading && <Glyphicon glyph="refresh" className="tableload" /> }
-        { !this.state.isLoading && this.state.corpora.length > 0 &&
+        { !this.state.isLoading && this.state.audio.length > 0 &&
           <Table striped bordered condensed hover>
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Out of Vocab Words</th>
-                <th>Total Words</th>
+                <th>Type</th>
+                <th>Duration (s)</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {this.state.corpora.map((corpus, index) => {
+              {this.state.audio.map((audio, index) => {
                   return (
                     <tr key={index}>
-                      <td>{corpus.name}</td>
-                      <td>{corpus.out_of_vocabulary_words}</td>
-                      <td>{corpus.total_words}</td>
+                      <td>{audio.name}</td>
+                      <td>{audio.details.type || '-' }</td>
+                      <td>{audio.duration || '-'}</td>
                       <td>
                         <span className={
-                          corpus.status === 'analyzed' ? 'text-success' : 'text-warning'
+                          audio.status === 'ok' ? 'text-success' : 'text-warning'
                         }>
-                        {corpus.status}{' '}
-                        {corpus.status ==='being_processed' &&
+                        {audio.status}{' '}
+                        {audio.status ==='being_processed' &&
                           <Glyphicon glyph="refresh" className="processing" />
                         }
                         </span>
@@ -154,8 +154,8 @@ export default class Corpora extends Component {
                           bsSize="xsmall"
                           type="button"
                           onClick={() => {
-                            if (window.confirm('Delete this corpus?')) {
-                              this.handleDelete(corpus.name);
+                            if (window.confirm('Delete this audio resource?')) {
+                              this.handleDelete(audio.name);
                             }}}>Delete
                         </Button>
                       </td>
