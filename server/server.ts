@@ -2,13 +2,16 @@
 /**
  * Module dependencies.
  */
+import * as fs from 'fs';
+import * as path from 'path';
 import * as bodyParser from 'body-parser';
 import * as compression from 'compression';  // compresses requests
 import * as express from 'express';
 import * as session from 'express-session';
-import * as util from './util';
+import {User, getCfenv} from './util';
 import * as crypto from 'crypto';
 import * as passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
 import expressValidator = require('express-validator');
 
  /**
@@ -32,9 +35,20 @@ class App {
   }
 
   private middleware(): void {
-    util.initPassport();
+    initPassport();
     this.express.set('port', process.env.PORT || 5000);
-    this.express.set('stt_service', util.getCfenv());
+    this.express.set('stt_service', getCfenv());
+    this.express.use(require('express-bunyan-logger')({
+      name: 'logger',
+      excludes: ['req', 'res',
+        'req-headers', 'res-headers',
+        'response-hrtime', 'user-agent'],
+      obfuscate: ['body.password'],
+      streams: [{
+          level: 'info',
+          stream: process.stdout
+      }]
+  }));
     this.express.use(compression());
     this.express.use(expressValidator());
     this.express.use(session({
@@ -46,7 +60,7 @@ class App {
     this.express.use(bodyParser.urlencoded({ extended: true }));
     this.express.use(passport.initialize());
     this.express.use(passport.session());
-    this.express.use(util.isAuthenticated);
+    this.express.use(isAuthenticated);
   }
 
   /**
@@ -70,5 +84,53 @@ class App {
     });
   }
 }
+
+function initPassport() {
+  /*
+  * Sign in using Username and Password.
+  */
+
+  let users = JSON.parse(fs.readFileSync(
+    path.join(__dirname, '..', 'model', 'user.json')).toString());
+
+  passport.serializeUser<any, any>((user: User, done) => {
+    done(undefined, user.username);
+  });
+
+  passport.deserializeUser((username: string, done) => {
+    done(undefined, Object.assign( {username: username}, users[username]));
+  });
+
+  passport.use(new LocalStrategy(
+    { usernameField: 'username' },
+    (username: string, password: string, done: Function) => {
+      if (users[username]) {
+        if (users[username].password === password) {
+          return done(undefined,
+            Object.assign({username: username}, users[username]));
+        }
+        return done(undefined,
+                    false,
+                    { message: 'Invalid username or password.' });
+      } else {
+        return done(undefined,
+                    false,
+                    { message: `user: ${username} doesn't exist` });
+      }
+  }));
+}
+
+/**
+ * Login Required middleware.
+ */
+function isAuthenticated (req: express.Request, res: express.Response,
+    next: express.NextFunction) {
+  if (req.isAuthenticated() || req.path === "/api/login") {
+    return next();
+  }
+  return res.status(401).json({
+    error: "Not authorized to view this resource."
+  });
+};
 
 export default new App().express;
