@@ -16,6 +16,7 @@ interface CfenvOpt {
 export interface User {
   username: string;
   customModel: string;
+  customAcousticModel: string;
 }
 
 export function initPassport() {
@@ -29,13 +30,15 @@ export function initPassport() {
   });
 
   passport.deserializeUser((username: string, done) => {
-    done(undefined, {username: username, customModel: users[username].customModel});
+    done(undefined, {username: username, customModel: users[username].customModel,
+                     customAcousticModel: users[username].customAcousticModel});
   });
 
   passport.use(new LocalStrategy({ usernameField: 'username' }, (username: string, password: string, done: Function) => {
     if (users[username]) {
       if (users[username].password === password) {
-        return done(undefined, {username: username, customModel: users[username].customModel});
+        return done(undefined, {username: username, customModel: users[username].customModel,
+                                customAcousticModel: users[username].customAcousticModel});
       }
       return done(undefined, false, { message: 'Invalid username or password.' });
     } else {
@@ -91,6 +94,7 @@ interface CustomModel {
 }
 
 let models: CustomModel[] = [];
+let acoustics: CustomModel[] = [];
 
 /**
  * Get or create the custom model that belongs to the current
@@ -98,12 +102,12 @@ let models: CustomModel[] = [];
  * @param req The Request object of the express middleware
  */
 export function getCustomModelId(req: Request): Promise<any[]> {
-  let credentials = req.app.get('stt_service').credentials;
-  let modelName = req.user.customModel;
-
   if (req.user.model_id) {
     return Promise.resolve([undefined, req.user.model_id]);
   }
+
+  let credentials = req.app.get('stt_service').credentials;
+  let modelName = req.user.customModel;
 
   let speech = getSTTV1(credentials);
   for (let index = 0, len = models.length; index < len; index++) {
@@ -129,11 +133,11 @@ export function getCustomModelId(req: Request): Promise<any[]> {
           }
         }
       }
-      // Need to create custom model here
+      // Need to create custom model here.
       speech.createLanguageModel(
         {
           name: modelName,
-          base_model_name: 'en-US_BroadbandModel',
+          base_model_name: 'en-US_NarrowbandModel',
           description: `Custom model for ${req.user.username}`,
         }, function(error, languageModel) {
         if (error) {
@@ -142,6 +146,57 @@ export function getCustomModelId(req: Request): Promise<any[]> {
           models.push({name: modelName, id: languageModel.customization_id});
           req.user.model_id = languageModel.customization_id;
           return resolve([undefined, languageModel.customization_id]);
+        }
+      });
+    });
+  });
+}
+
+export function getCustomAcousticModelId(req: Request): Promise<any[]> {
+  if (req.user.acoustic_model_id) {
+    return Promise.resolve([undefined, req.user.model_id]);
+  }
+
+  let credentials = req.app.get('stt_service').credentials;
+  let modelName = req.user.customAcousticModel;
+
+  let speech = getSTTV1(credentials);
+  for (let index = 0, len = acoustics.length; index < len; index++) {
+    if (acoustics[index].name === modelName) {
+      req.user.acoustic_model_id = acoustics[index].id;
+      return Promise.resolve([undefined, acoustics[index].id]);
+    }
+  }
+
+  return new Promise((resolve) => {
+    speech.listAcousticModels(null, (error: any, acousticModels: any) => {
+      if (error) {
+        return resolve([error]);
+      } else {
+        let customModels = acousticModels.customizations;
+        if (customModels) {
+          for (let index = 0, len = customModels.length; index < len; index++) {
+            if (customModels[index].name === modelName) {
+              acoustics.push({name: modelName, id: customModels[index].customization_id});
+              req.user.acoustic_model_id = customModels[index].customization_id;
+              return resolve([undefined, customModels[index].customization_id]);
+            }
+          }
+        }
+      }
+      // Create custom acoustic model here if it doesn't exist.
+      speech.createAcousticModel(
+        {
+          name: modelName,
+          base_model_name: 'en-US_NarrowbandModel',
+          description: `Custom acoustic model for ${req.user.username}`,
+        }, function(error, acousticModel) {
+        if (error) {
+          return resolve([error]);
+        } else {
+          acoustics.push({name: modelName, id: acousticModel.customization_id});
+          req.user.acoustic_model_id = acousticModel.customization_id;
+          return resolve([undefined, acousticModel.customization_id]);
         }
       });
     });
@@ -221,7 +276,6 @@ export function deleteCorpus(credentials: STTCredential, modelId: string, corpus
     customization_id: modelId,
     corpus_name: corpusName
   };
-
   return new Promise<any[]>((resolve, reject) => {
     speech.deleteCorpus(deleteCorpusParams, function(error: any, corpusName: string) {
       if (error) {
@@ -272,6 +326,83 @@ export async function getLanguageModel(credentials: STTCredential, modelId: stri
         resolve([error]);
       } else {
         resolve([undefined, languageModel]);
+      }
+    });
+  });
+}
+
+export async function getAcousticModel(credentials: STTCredential, modelId: string): Promise<any[]> {
+  let speech = getSTTV1(credentials);
+  return new Promise<any[]>( (resolve, reject) => {
+    speech.getAcousticModel({customization_id: modelId }, function(error: any, acousticModel: any) {
+      if (error) {
+        resolve([error]);
+      } else {
+        resolve([undefined, acousticModel]);
+      }
+    });
+  });
+}
+
+export async function trainAcousticModel(credentials: STTCredential, acousticModelId: string, languageModelId: string): Promise<any>{
+  let speech = getSTTV1(credentials);
+  let trainAcousticModelParams = {
+    customization_id: acousticModelId,
+    custom_language_model_id: languageModelId
+  };
+  return new Promise<any>((resolve, reject) => {
+    speech.trainAcousticModel(trainAcousticModelParams, function(error) {
+      if (error) {
+        resolve([error]);
+      } else {
+        resolve([undefined]);
+      }
+    });
+  });
+}
+
+export async function addAudio(credentials: STTCredential, params: any): Promise<any[]> {
+  let speech = getSTTV1(credentials);
+  return new Promise( (resolve, reject) => {
+    speech.addAudio(params, function(error: any) {
+      if (error) {
+        resolve([error]);
+      } else {
+        resolve([undefined]);
+      }
+    });
+  })
+}
+
+export function listAudio(credentials: STTCredential, modelId: string): Promise<any[]> {
+  let speech = getSTTV1(credentials);
+  let listAudioParams = {
+    customization_id: modelId,
+  };
+
+  return new Promise<any[]>((resolve, reject) => {
+    speech.listAudio(listAudioParams, function(error: any, audioResources: any) {
+      if (error) {
+        resolve([error]);
+      } else {
+        resolve([undefined, audioResources]);
+      }
+    });
+  });
+}
+
+export function deleteAudio(credentials: STTCredential, modelId: string, audioName: string): Promise<any[]> {
+  let speech = getSTTV1(credentials);
+  let deleteAudioParams = {
+    customization_id: modelId,
+    audio_name: audioName
+  };
+  return new Promise<any[]>((resolve, reject) => {
+    speech.deleteAudio(deleteAudioParams, function(error: any, audioName: string) {
+      if (error) {
+        resolve([error]);
+      } else {
+        resolve([undefined, audioName]);
       }
     });
   });

@@ -25,7 +25,7 @@ export default class Transcribe extends Component {
       content: '',
       filename: null,
       hasTranscribed: false,
-      improvedAcousticChecked: false,
+      improveAcousticChecked: false,
       error: '',
       fileSettingsOpen: true,
       corpusName: ''
@@ -48,7 +48,7 @@ export default class Transcribe extends Component {
   }
 
   handleAcousticChange = event => {
-    this.setState({ 'improvedAcousticChecked': !this.state.improvedAcousticChecked });
+    this.setState({ 'improveAcousticChecked': !this.state.improveAcousticChecked });
   }
 
   handleTranscribe = async event => {
@@ -62,7 +62,8 @@ export default class Transcribe extends Component {
     this.setState({ isTranscribing: true });
     let formData  = new FormData();
     formData.append('audio', this.file);
-    formData.append('model', this.modelType.value);
+    formData.append('languageModel', this.languageModelType.value);
+    formData.append('acousticModel', this.acousticModelType.value);
 
     fetch('/api/transcribe', {
       method: 'POST',
@@ -97,6 +98,9 @@ export default class Transcribe extends Component {
     event.preventDefault();
 
     this.setState({ isSubmitting: true });
+
+
+    // Upload corpora.
     fetch('/api/corpora', {
       method: 'POST',
       body: JSON.stringify({'corpusName': this.state.corpusName, 'corpus': this.state.content}),
@@ -108,18 +112,52 @@ export default class Transcribe extends Component {
     .then((response) => {
       if (response.status === 200) {
         response.json().then((data) => {
-          // Redirect to corpora page to see status.
-          this.props.history.push('/corpora');
+          console.log('Done corpora');
+          // Corpora uploaded successfully, so upload audio resource if option was selected.
+          if (this.state.improveAcousticChecked) {
+
+            let formData  = new FormData();
+            formData.append('audio', this.file);
+            formData.append('corpusName', this.state.corpusName);
+            console.log(formData);
+            fetch('/api/audio', {
+              method: 'POST',
+              body: formData,
+              credentials: 'include',
+            })
+            .then((response) => {
+              if (response.status === 200) {
+                response.json().then((data) => {
+                  // Redirect to corpora page to see status.
+                  this.props.history.push('/corpora');
+                });
+              }
+              else {
+                this.setState({ error: 'Could not add audio resource. HTTP Status Code: ' + response.status });
+              }
+              this.setState({ isSubmitting: false });
+            })
+            .catch((err) => {
+              console.log('Could not add audio resource: ', err);
+              this.setState({ error: 'Could not audio resource: ' + err });
+              this.setState({ isSubmitting: false });
+            });
+          }
+          else {
+            // Redirect to corpora page to see status.
+            this.props.history.push('/corpora');
+            this.setState({ isSubmitting: false });
+          }
         });
       }
       else {
-        this.setState({ error: 'Could not add corpus.' });
+        this.setState({ error: 'Could not add corpus. HTTP Status Code: ' + response.status });
+        this.setState({ isSubmitting: false });
       }
-      this.setState({ isSubmitting: false });
     })
     .catch((err) => {
       console.log('Could not add corpus: ', err);
-      this.setState({ error: 'Could not authenticate: ' + err });
+      this.setState({ error: 'Could not add corpus: ' + err });
       this.setState({ isSubmitting: false });
     });
   }
@@ -128,7 +166,7 @@ export default class Transcribe extends Component {
     return (
       <div className="STTForm">
         <h2>Custom Speech Transcriber</h2>
-        <p>Convert audio to text using the custom model.</p>
+        <p>Convert audio to text using the customized models.</p>
         <Panel
           id="collapsible-panel-example-2"
           onToggle={this.handlePanelToggle}
@@ -136,7 +174,7 @@ export default class Transcribe extends Component {
         >
           <Panel.Heading>
             <Panel.Title toggle>
-              Select model and audio file{' '}
+              Select models and audio file{' '}
               <span className='panel-arrow'>
               { this.state.fileSettingsOpen
                 ? <Glyphicon glyph="chevron-down" />
@@ -149,17 +187,29 @@ export default class Transcribe extends Component {
             <Panel.Body>
               <form onSubmit={this.handleTranscribe}>
                 <FormGroup controlId="formControlsSelect">
-                  <ControlLabel>Select Model</ControlLabel>
+                  <ControlLabel>Select Language Model</ControlLabel>
                   <FormControl
                     componentClass="select"
                     placeholder="select"
-                    inputRef={modelType => this.modelType = modelType}>
+                    inputRef={languageModelType => this.languageModelType = languageModelType}>
                     { localStorage.getItem('customModel') &&
-                      <option value={localStorage.getItem('customModel')}>Custom Model</option>
+                      <option value={localStorage.getItem('customModel')}>Custom Language Model</option>
                     }
-                    <option value={config.BASE_STT_MODEL}>Base Model</option>
+                    <option value={config.BASE_STT_MODEL}>Base Language Model</option>
                   </FormControl>
-                  <HelpBlock>Choose your customized model or the base model.</HelpBlock>
+                  <HelpBlock>Choose your customized language model or the base model.</HelpBlock>
+
+                  <ControlLabel>Select Acoustic Model</ControlLabel>
+                  <FormControl
+                    componentClass="select"
+                    placeholder="select"
+                    inputRef={acousticModelType => this.acousticModelType = acousticModelType}>
+                    { localStorage.getItem('customAcousticModel') &&
+                      <option value={localStorage.getItem('customAcousticModel')}>Custom Acoustic Model</option>
+                    }
+                    <option value={config.BASE_STT_MODEL}>Base Acousstic Model</option>
+                  </FormControl>
+                  <HelpBlock>Choose your customized acoustic model or the base model.</HelpBlock>
                 </FormGroup>
                 <FormGroup controlId="file">
                   <ControlLabel>Select Audio File</ControlLabel><br />
