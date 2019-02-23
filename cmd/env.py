@@ -16,7 +16,9 @@ def get_username():
     try:
         return os.environ['USERNAME']
     except: 
-        print "Please set your username in the environment variable USERNAME"
+        print "Please set your username in the environment variable USERNAME."
+        print "If you use IAM service credentials, set USERNAME set to the string \"apikey\""
+        print "and set PASSWORD to the value of your IAM API key."
         sys.exit(-1)
     
 
@@ -25,6 +27,8 @@ def get_password():
         return os.environ['PASSWORD']
     except:
         print "Please set your password in the environment variable PASSWORD"
+        print "If you use IAM service credentials, set USERNAME set to the string \"apikey\""
+        print "and set PASSWORD to the value of your IAM API key."
         sys.exit(-1)
 
 
