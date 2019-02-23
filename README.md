@@ -131,10 +131,10 @@ You can use two methods:  command line or web interface.  Both are described bel
 
 #### a. Command line
 Since the audio files are sampled at the 8Khz rate, we will need to use the narrow band model and this is coded in the python command line.
-Create your custom language model and your corpus of medical dictation:
+Note that the GUI will use the name "custom-model-1" for the language model, so we will use the same name in the command line.  Create your custom language model and your corpus of medical dictation:
 
 ```
-python ../cmd/create_language_model.py "Custom Language 1"
+python ../cmd/create_language_model.py "custom-model-1"
 
 ```
 
@@ -144,9 +144,9 @@ python ../cmd/list_language_model.py
 export LANGUAGE_ID=<id_for_your_model>
 ```
 
-The custom model will stay in the *pending* state until a corpus of text is added.  Add the medical transcription file from the step above.
+The custom model will stay in the *pending* state until a corpus of text is added.  Add the medical transcription file from the step above.  
 ```
-python ../cmd/create_corpus.py corpus-1.input
+python ../cmd/add_corpus.py corpus-1.input
 python ../cmd/list_corpus.py
 ```
 
@@ -167,18 +167,18 @@ You can check for completion with list_language_model.py.  When training is comp
 
 #### a. Command line
 
-Create the custom acoustic model based on the custom language model.  Make sure that the environment variable LANGUAGE_ID is set as described in the step above.
+Create the custom acoustic model based on the custom language model.  Make sure that the environment variable LANGUAGE_ID is set as described in the step above.  Note that the GUI will use the name "Acoustic model 1", so we will use the same name below.
 
 ```
-python ../cmd/create_acoustic_model.py "Custom Acoustic 1"
+python ../cmd/create_acoustic_model.py "Acoustic model 1"
 ```
 
 The custom acoustic model will be in the *pending* state until some audio data is added.  Add the 3 zip files containing the audio clips with the following command.  Note that it may take some time to process each audio file.  If processing is not completed yet, the command will return a *409* error message;  in this case, simply retry later.  
 
 ```
-python ../cmd/add_audio.py dictation_audio_set1.zip
-python ../cmd/add_audio.py dictation_audio_set2.zip
-python ../cmd/add_audio.py dictation_audio_set3.zip
+python ../cmd/add_audio.py audio-set1.zip
+python ../cmd/add_audio.py audio-set2.zip
+python ../cmd/add_audio.py audio-set3.zip
 python ../cmd/list_audio.py
 ```
 
@@ -188,7 +188,7 @@ The status of the custom acoustic model should now be *ready*.  You can start th
 python ../cmd/train_acoustic_model.py
 ```
 
-Training the acoustic model is asynchronous and typically takes a longer time than with the language model.  To determine when training is completed, you can query the model and check that the status has changed from *traning* to *available*.
+Training the acoustic model is asynchronous and typically would run overnight.  To determine when training is completed, you can query the model and check that the status has changed from *traning* to *available*.
 
 ```
 python ../cmd/list_acoustic_model.py
