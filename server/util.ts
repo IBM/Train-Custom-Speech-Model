@@ -1,13 +1,9 @@
 'use strict';
 
-import * as fs from 'fs';
-import { Request, Response, NextFunction } from 'express';
+import { Request } from 'express';
 import * as cfenv from 'cfenv';
 import * as path from 'path';
-import * as passport from 'passport';
-import { Strategy as LocalStrategy } from 'passport-local';
 import SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
-
 
 interface CfenvOpt {
   vcapFile?: any
@@ -15,36 +11,8 @@ interface CfenvOpt {
 
 export interface User {
   username: string;
-  customModel: string;
-  customAcousticModel: string;
-}
-
-export function initPassport() {
-  /*
-  * Sign in using Username and Password.
-  */
-
-  let users = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'model', 'user.json')).toString());
-  passport.serializeUser<any, any>((user: User, done) => {
-    done(undefined, user.username);
-  });
-
-  passport.deserializeUser((username: string, done) => {
-    done(undefined, {username: username, customModel: users[username].customModel,
-                     customAcousticModel: users[username].customAcousticModel});
-  });
-
-  passport.use(new LocalStrategy({ usernameField: 'username' }, (username: string, password: string, done: Function) => {
-    if (users[username]) {
-      if (users[username].password === password) {
-        return done(undefined, {username: username, customModel: users[username].customModel,
-                                customAcousticModel: users[username].customAcousticModel});
-      }
-      return done(undefined, false, { message: 'Invalid username or password.' });
-    } else {
-      return done(undefined, false, { message: `user: ${username} doesn't exist` });
-    }
-  }));
+  langModel: string;
+  acousticModel: string;
 }
 
 export function getCfenv () {
@@ -57,6 +25,335 @@ export function getCfenv () {
 
   return cfenv.getAppEnv(cfenvOpt)
     .getService(process.env.STT_SERVICE_NAME || 'code-pattern-custom-language-model');
+}
+
+/**
+ * A class that wraps Watson STTV1 api and mainly focus on custom
+ * language/acoustic model management.
+ */
+export class WatsonSTT {
+  readonly speech: SpeechToTextV1;
+  readonly username: string;
+  readonly langModelName: string;
+  readonly langModelId: string;
+  readonly acousticModelName: string;
+  readonly acousticModelId: string;
+
+  private constructor(speech: SpeechToTextV1, username: string,
+                      langModelName: string, langModelId: string,
+                      acousticModelName: string, acousticModelId: string) {
+    this.speech = speech;
+    this.username = username;
+    this.langModelName = langModelName;
+    this.langModelId = langModelId;
+    this.acousticModelName = acousticModelName;
+    this.acousticModelId = acousticModelId;
+  }
+
+  /**
+   * Create a new instance of WatsonSTT or get it from user session.
+   * @param req Request object from express middleware
+   */
+  static async getInstance(req: Request): Promise<WatsonSTT> {
+    let rev: WatsonSTT = req.user._watsonSTT;
+    if (rev && rev instanceof WatsonSTT) {
+      return Promise.resolve(rev);
+    }
+
+    if (!req.app.get('stt_service') || !req.app.get('stt_service').credentials) {
+      req.log.error('Can not get credentials for Watson service');
+      return Promise.resolve(undefined);
+    }
+
+    let speech = getSTTV1(req.app.get('stt_service').credentials);
+    let langModelId = await getCustomLangModelId(speech, req.user);
+
+    if (langModelId[0]) {
+      req.log.error(`Custom language model error: ${langModelId[0]}`);
+      return Promise.resolve(undefined);
+    }
+    let acousticModelId = await getCustomAcousticModelId(speech, req.user);
+    if (acousticModelId[0]) {
+      req.log.error(`Custom acoustic model error: ${acousticModelId[0]}`);
+      return Promise.resolve(undefined);
+    }
+
+    return Promise.resolve(
+      new WatsonSTT(speech, req.user.username,
+        req.user.langModel, langModelId[1],
+        req.user.acousticModel, acousticModelId[1]));
+    }
+
+    async addCorpus(corpusName: string, corpus: string): Promise<any[]>  {
+
+      var addCorpusParams = {
+        customization_id: this.langModelId,
+        corpus_file: Buffer.from(corpus),
+        corpus_name: corpusName,
+        allow_overwrite: true
+      };
+
+      return new Promise<any[]>( (resolve, reject) => {
+        this.speech.addCorpus(addCorpusParams, function(error: any) {
+          if (error) {
+            resolve([error]);
+          } else {
+            resolve([undefined]);
+          }
+        });
+      })
+    }
+
+    /**
+     * Add the specified word into the custom language model
+     * @param word new word
+     * @param soundsLike sounds like string array
+     * @param displayAs display as caption
+     */
+    async addWord(word: string, soundsLike?: string[], displayAs?: string )
+        : Promise<any[]> {
+
+      let addWordParams = {
+        customization_id: this.langModelId,
+        word: word,
+        sounds_like: soundsLike,
+        display_as: displayAs
+      };
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.addWord(addWordParams, (error: any) => {
+          if (error) {
+            resolve([error]);
+          } else {
+            resolve([undefined]);
+          }
+        });
+      });
+    }
+
+    /**
+     * Get corpus information by the corpus name
+     * @param corpusName corpus name
+     */
+    async getCorpus(corpusName: string): Promise<any[]> {
+      var getCorpusParams = {
+        customization_id: this.langModelId,
+        corpus_name: corpusName
+      };
+
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.getCorpus(getCorpusParams,
+          (error: any, corpus: CorpusResult)=> {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined, corpus]);
+            }
+        });
+      });
+    }
+
+    /**
+     * Delete a corpus by the corpus name
+     * @param corpusName corpus name
+     */
+    async deleteCorpus(corpusName: string): Promise<any[]> {
+      var deleteCorpusParams = {
+        customization_id: this.langModelId,
+        corpus_name: corpusName
+      };
+
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.deleteCorpus(deleteCorpusParams,
+          (error: any, corpusName: string) => {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined, corpusName]);
+            }
+        });
+      });
+    }
+
+    /**
+     * Get Corpora information of the custom language model
+     */
+    async getCorpora(): Promise<any[]> {
+      var getCorporaParams = {
+        customization_id: this.langModelId,
+      };
+
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.listCorpora(getCorporaParams,
+          (error: any, corpora: any) => {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined, corpora]);
+            }
+        });
+      });
+    }
+
+    /**
+     * Kick of the custom language model train
+     */
+    async trainModel(): Promise<any>{
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.trainLanguageModel({customization_id: this.langModelId },
+          (error) => {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined]);
+            }
+        });
+      });
+    }
+
+    /**
+     * Get detailed information of the custom language model
+     */
+    async getLanguageModel(): Promise<any[]> {
+      return new Promise<any[]>( (resolve, reject) => {
+        this.speech.getLanguageModel({customization_id: this.langModelId },
+          (error: any, languageModel: any) => {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined, languageModel]);
+            }
+        });
+      });
+    }
+
+    /**
+     * List words of the custom language model
+     */
+    async listWords(): Promise<any[]> {
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.listWords({customization_id: this.langModelId },
+          (error: any, results: any) => {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined, results]);
+            }
+        });
+      });
+    }
+
+    /**
+     * Delete a specific word from the custom language model
+     * @param word word
+     */
+    async deleteWord(word: string): Promise<any[]> {
+      let deleteWordParams = {
+        customization_id: this.langModelId,
+        word_name: word
+      };
+
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.deleteWord(deleteWordParams, (error: any) => {
+          if (error) {
+            resolve([error]);
+          } else {
+            resolve([undefined]);
+          }
+        });
+      });
+    }
+
+    /**
+     * Get detailed information of the custom acoustic model
+     */
+    async getAcousticModel(): Promise<any[]> {
+      return new Promise<any[]>( (resolve, reject) => {
+        this.speech.getAcousticModel({customization_id: this.acousticModelId },
+          (error: any, acousticModel: any) => {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined, acousticModel]);
+            }
+        });
+      });
+    }
+
+    /**
+     * Kick of the custom acoustic model training process
+     */
+    async trainAcousticModel(): Promise<any>{
+      let trainAcousticModelParams = {
+        customization_id: this.acousticModelId,
+        custom_language_model_id: this.langModelId
+      };
+      return new Promise<any>((resolve, reject) => {
+        this.speech.trainAcousticModel(trainAcousticModelParams, (error) => {
+          if (error) {
+            resolve([error]);
+          } else {
+            resolve([undefined]);
+          }
+        });
+      });
+    }
+
+    /**
+     * Add audio to custom acoustic model
+     * @param params
+     */
+    async addAudio(params: any): Promise<any[]> {
+      return new Promise<any[]>( (resolve, reject) => {
+        this.speech.addAudio(params, (error: any) => {
+          if (error) {
+            resolve([error]);
+          } else {
+            resolve([undefined]);
+          }
+        });
+      })
+    }
+
+    /**
+     * List the audio of the custom acoustic model
+     */
+    async listAudio(): Promise<any[]> {
+      let listAudioParams = {
+        customization_id: this.acousticModelId,
+      };
+
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.listAudio(listAudioParams,
+          (error: any, audioResources: any) => {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined, audioResources]);
+            }
+        });
+      });
+    }
+
+    /**
+     * Delete a specific audio from the custom acoustic model
+     * @param audioName name of the audio
+     */
+    async deleteAudio(audioName: string): Promise<any[]> {
+      let deleteAudioParams = {
+        customization_id: this.acousticModelId,
+        audio_name: audioName
+      };
+      return new Promise<any[]>((resolve, reject) => {
+        this.speech.deleteAudio(deleteAudioParams,
+          (error: any, audioName: string) => {
+            if (error) {
+              resolve([error]);
+            } else {
+              resolve([undefined, audioName]);
+            }
+        });
+      });
+    }
 }
 
 export function getSTTV1 (credentials: STTCredential) {
@@ -93,7 +390,9 @@ interface CustomModel {
   id: string
 }
 
+// custom language model cache
 let models: CustomModel[] = [];
+// custom acoustic model cache
 let acoustics: CustomModel[] = [];
 
 /**
@@ -101,18 +400,11 @@ let acoustics: CustomModel[] = [];
  * user and return the model id.
  * @param req The Request object of the express middleware
  */
-export function getCustomModelId(req: Request): Promise<any[]> {
-  if (req.user.model_id) {
-    return Promise.resolve([undefined, req.user.model_id]);
-  }
+function getCustomLangModelId(speech: SpeechToTextV1, user: any): Promise<any[]> {
+  let modelName = user.langModel;
 
-  let credentials = req.app.get('stt_service').credentials;
-  let modelName = req.user.customModel;
-
-  let speech = getSTTV1(credentials);
   for (let index = 0, len = models.length; index < len; index++) {
     if (models[index].name === modelName) {
-      req.user.model_id =  models[index].id;
       return Promise.resolve([undefined, models[index].id]);
     }
   }
@@ -124,11 +416,14 @@ export function getCustomModelId(req: Request): Promise<any[]> {
       } else {
         let customModels = languageModels.customizations;
         if (customModels) {
-          for (let index = 0, len = customModels.length; index < len; index++) {
-            if (customModels[index].name === modelName) {
-              models.push({name: modelName, id: customModels[index].customization_id});
-              req.user.model_id =  customModels[index].customization_id;
-              return resolve([undefined, customModels[index].customization_id]);
+          for (let i = 0, len = customModels.length; i < len; i++) {
+            if (customModels[i].name === modelName) {
+              models.push(
+                {
+                  name: modelName,
+                  id: customModels[i].customization_id
+                });
+              return resolve([undefined, customModels[i].customization_id]);
             }
           }
         }
@@ -138,32 +433,24 @@ export function getCustomModelId(req: Request): Promise<any[]> {
         {
           name: modelName,
           base_model_name: 'en-US_NarrowbandModel',
-          description: `Custom model for ${req.user.username}`,
-        }, function(error, languageModel) {
-        if (error) {
-          return resolve([error]);
-        } else {
-          models.push({name: modelName, id: languageModel.customization_id});
-          req.user.model_id = languageModel.customization_id;
-          return resolve([undefined, languageModel.customization_id]);
-        }
+          description: `Custom model for ${user.username}`,
+        },
+        (error: any, languageModel: any) => {
+          if (error) {
+            return resolve([error]);
+          } else {
+            models.push({name: modelName, id: languageModel.customization_id});
+            return resolve([undefined, languageModel.customization_id]);
+          }
       });
     });
   });
 }
 
-export function getCustomAcousticModelId(req: Request): Promise<any[]> {
-  if (req.user.acoustic_model_id) {
-    return Promise.resolve([undefined, req.user.model_id]);
-  }
-
-  let credentials = req.app.get('stt_service').credentials;
-  let modelName = req.user.customAcousticModel;
-
-  let speech = getSTTV1(credentials);
+function getCustomAcousticModelId(speech: SpeechToTextV1, user: any): Promise<any[]> {
+  let modelName = user.acousticModel;
   for (let index = 0, len = acoustics.length; index < len; index++) {
     if (acoustics[index].name === modelName) {
-      req.user.acoustic_model_id = acoustics[index].id;
       return Promise.resolve([undefined, acoustics[index].id]);
     }
   }
@@ -173,13 +460,16 @@ export function getCustomAcousticModelId(req: Request): Promise<any[]> {
       if (error) {
         return resolve([error]);
       } else {
-        let customModels = acousticModels.customizations;
+        let customModels: Array<any> = acousticModels.customizations;
         if (customModels) {
-          for (let index = 0, len = customModels.length; index < len; index++) {
-            if (customModels[index].name === modelName) {
-              acoustics.push({name: modelName, id: customModels[index].customization_id});
-              req.user.acoustic_model_id = customModels[index].customization_id;
-              return resolve([undefined, customModels[index].customization_id]);
+          for (let i = 0, len = customModels.length; i < len; i++) {
+            if (customModels[i].name === modelName) {
+              acoustics.push(
+                {
+                  name: modelName,
+                  id: customModels[i].customization_id
+                });
+              return resolve([undefined, customModels[i].customization_id]);
             }
           }
         }
@@ -189,58 +479,20 @@ export function getCustomAcousticModelId(req: Request): Promise<any[]> {
         {
           name: modelName,
           base_model_name: 'en-US_NarrowbandModel',
-          description: `Custom acoustic model for ${req.user.username}`,
-        }, function(error, acousticModel) {
-        if (error) {
-          return resolve([error]);
-        } else {
-          acoustics.push({name: modelName, id: acousticModel.customization_id});
-          req.user.acoustic_model_id = acousticModel.customization_id;
-          return resolve([undefined, acousticModel.customization_id]);
-        }
+          description: `Custom acoustic model for ${user.username}`,
+        },
+        (error: any, acousticModel: any) => {
+          if (error) {
+            return resolve([error]);
+          } else {
+            acoustics.push(
+              {
+                name: modelName,
+                id: acousticModel.customization_id
+              });
+            return resolve([undefined, acousticModel.customization_id]);
+          }
       });
-    });
-  });
-}
-
-export function addCorpus(credentials: STTCredential, modelId: string, corpusName: string, corpus: string): Promise<any[]>  {
-  let speech = getSTTV1(credentials);
-
-  var addCorpusParams = {
-    customization_id: modelId,
-    corpus_file: Buffer.from(corpus),
-    corpus_name: corpusName,
-    allow_overwrite: true
-  };
-
-  return new Promise( (resolve, reject) => {
-    speech.addCorpus(addCorpusParams, function(error: any) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined]);
-      }
-    });
-  })
-}
-
-export function addWord(credentials: STTCredential, modelId: string, word: string,
-  soundsLike?: string[], displayAs?: string ): Promise<any[]> {
-
-  let speech = getSTTV1(credentials);
-  let addWordParams = {
-    customization_id: modelId,
-    word: word,
-    sounds_like: soundsLike,
-    display_as: displayAs
-  };
-  return new Promise( (resolve, reject) => {
-    speech.addWord(addWordParams, (error: any) => {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined]);
-      }
     });
   });
 }
@@ -251,203 +503,3 @@ export interface CorpusResult {
   total_words: number;
   status: string;
 }
-
-export function getCorpus(credentials: STTCredential, modelId: string, corpusName: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  var getCorpusParams = {
-    customization_id: modelId,
-    corpus_name: corpusName
-  };
-
-  return new Promise<any[]>((resolve, reject) => {
-    speech.getCorpus(getCorpusParams, function(error: any, corpus: CorpusResult) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined, corpus]);
-      }
-    });
-  });
-}
-
-export function deleteCorpus(credentials: STTCredential, modelId: string, corpusName: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  var deleteCorpusParams = {
-    customization_id: modelId,
-    corpus_name: corpusName
-  };
-  return new Promise<any[]>((resolve, reject) => {
-    speech.deleteCorpus(deleteCorpusParams, function(error: any, corpusName: string) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined, corpusName]);
-      }
-    });
-  });
-}
-
-export function getCorpora(credentials: STTCredential, modelId: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  var getCorporaParams = {
-    customization_id: modelId,
-  };
-
-  return new Promise<any[]>((resolve, reject) => {
-    speech.listCorpora(getCorporaParams, function(error: any, corpora: any) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined, corpora]);
-      }
-    });
-  });
-}
-
-export async function trainModel(credentials: STTCredential, modelId: string): Promise<any>{
-  let speech = getSTTV1(credentials);
-
-  return new Promise<any>((resolve, reject) => {
-    speech.trainLanguageModel({customization_id: modelId }, function(error) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined]);
-      }
-    });
-  });
-}
-
-export async function getLanguageModel(credentials: STTCredential, modelId: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  return new Promise<any[]>( (resolve, reject) => {
-    speech.getLanguageModel({customization_id: modelId }, function(error: any, languageModel: any) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined, languageModel]);
-      }
-    });
-  });
-}
-
-export async function getAcousticModel(credentials: STTCredential, modelId: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  return new Promise<any[]>( (resolve, reject) => {
-    speech.getAcousticModel({customization_id: modelId }, function(error: any, acousticModel: any) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined, acousticModel]);
-      }
-    });
-  });
-}
-
-export async function trainAcousticModel(credentials: STTCredential, acousticModelId: string, languageModelId: string): Promise<any>{
-  let speech = getSTTV1(credentials);
-  let trainAcousticModelParams = {
-    customization_id: acousticModelId,
-    custom_language_model_id: languageModelId
-  };
-  return new Promise<any>((resolve, reject) => {
-    speech.trainAcousticModel(trainAcousticModelParams, function(error) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined]);
-      }
-    });
-  });
-}
-
-export async function addAudio(credentials: STTCredential, params: any): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  return new Promise( (resolve, reject) => {
-    speech.addAudio(params, function(error: any) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined]);
-      }
-    });
-  })
-}
-
-export function listAudio(credentials: STTCredential, modelId: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  let listAudioParams = {
-    customization_id: modelId,
-  };
-
-  return new Promise<any[]>((resolve, reject) => {
-    speech.listAudio(listAudioParams, function(error: any, audioResources: any) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined, audioResources]);
-      }
-    });
-  });
-}
-
-export function deleteAudio(credentials: STTCredential, modelId: string, audioName: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  let deleteAudioParams = {
-    customization_id: modelId,
-    audio_name: audioName
-  };
-  return new Promise<any[]>((resolve, reject) => {
-    speech.deleteAudio(deleteAudioParams, function(error: any, audioName: string) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined, audioName]);
-      }
-    });
-  });
-}
-
-export async function listWords(credentials: STTCredential, modelId: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-
-  return new Promise<any[]>((resolve, reject) => {
-    speech.listWords({customization_id: modelId }, function(error: any, results: any) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined, results]);
-      }
-    });
-  });
-}
-
-export async function deleteWord(credentials: STTCredential, modelId: string, word: string): Promise<any[]> {
-  let speech = getSTTV1(credentials);
-  let deleteWordParams = {
-    customization_id: modelId,
-    word_name: word
-  };
-
-  return new Promise<any[]>((resolve, reject) => {
-    speech.deleteWord(deleteWordParams, function(error: any) {
-      if (error) {
-        resolve([error]);
-      } else {
-        resolve([undefined]);
-      }
-    });
-  });
-}
-
-/**
- * Login Required middleware.
- */
-export function isAuthenticated (req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated() || req.path === "/api/login") {
-    return next();
-  }
-  return res.status(401).json({
-    error: "Not authorized to view this resource."
-  });
-};

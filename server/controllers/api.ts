@@ -2,8 +2,20 @@
 
 import * as multer from 'multer';
 import * as stream from 'stream';
-import * as util from '../util';
+import {WatsonSTT} from '../util';
 import { Request, Response, RequestHandler } from 'express';
+import { NextFunction } from 'connect';
+
+declare global {
+  namespace Express {
+    interface Request {
+      // Let's attach session scoped WatsonSTT
+      // to Request directly
+      watsonSTT?: WatsonSTT
+      log?: Console
+    }
+  }
+}
 
 let upload = multer({ storage: multer.memoryStorage() });
 
@@ -24,7 +36,6 @@ interface RecognizeParams {
  * POST /api/transcribe
  */
 async function postTranscribe (req: Request, res: Response) {
-  let speechToText = util.getSTTV1(req.app.get('stt_service').credentials);
   let bufferStream = new stream.PassThrough();
   bufferStream.end( req.file.buffer );
   let types = ['wav', 'mp3', 'flac'];
@@ -41,17 +52,17 @@ async function postTranscribe (req: Request, res: Response) {
     model: 'en-US_NarrowbandModel'
   };
 
-  let id = await util.getCustomModelId(req);
-  if (req.body.languageModel !== 'en-US_NarrowbandModel') {
-    recognizeParams.language_customization_id = id[1];
+  let watsonSTT: WatsonSTT = req.watsonSTT;
+
+  if (req.body.model !== 'en-US_NarrowbandModel') {
+    recognizeParams.language_customization_id = watsonSTT.langModelId;
   }
 
-  id = await util.getCustomAcousticModelId(req);
   if (req.body.acousticModel !== 'en-US_NarrowbandModel') {
-    recognizeParams.acoustic_customization_id = id[1];
+    recognizeParams.acoustic_customization_id = watsonSTT.acousticModelId;
   }
 
-  speechToText.recognize(recognizeParams, (error: any, results: any) => {
+  watsonSTT.speech.recognize(recognizeParams, (error: any, results: any) => {
     if (error || !results.results[0]) {
       return res.status(500).json({
         error: error || results.results[0]
@@ -70,8 +81,7 @@ async function postTranscribe (req: Request, res: Response) {
 };
 
 async function getModel(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req);
-  let result = await util.getLanguageModel(req.app.get('stt_service').credentials, id[1]);
+  let result = await req.watsonSTT.getLanguageModel();
   if (result[0]) {
     return res.status(result[0].code).json({
       error: result[0]
@@ -84,8 +94,7 @@ async function getModel(req: Request, res: Response) {
 }
 
 async function getAcousticModel(req: Request, res: Response) {
-  let id = await util.getCustomAcousticModelId(req);
-  let result = await util.getAcousticModel(req.app.get('stt_service').credentials, id[1]);
+  let result = await req.watsonSTT.getAcousticModel();
   if (result[0]) {
     return res.status(result[0].code || 500).json({
       error: result[0]
@@ -100,18 +109,16 @@ async function getAcousticModel(req: Request, res: Response) {
 async function postAudio(req: Request, res: Response) {
   let bufferStream = new stream.PassThrough();
   bufferStream.end( req.file.buffer );
-
-  let id = await util.getCustomAcousticModelId(req);
   let type = req.file.originalname.split('.').pop();
 
   let params = {
-    customization_id: id[1],
+    customization_id: req.watsonSTT.acousticModelId,
     content_type: 'audio/' + type,
     audio_resource: bufferStream,
     audio_name: req.body.corpusName + '-audio'
   };
 
-  let result = await util.addAudio(req.app.get('stt_service').credentials, params);
+  let result = await req.watsonSTT.addAudio(params);
 
   if (result[0]) {
     return res.status(result[0].code || 500).json({
@@ -125,8 +132,7 @@ async function postAudio(req: Request, res: Response) {
 }
 
 async function listAudio(req: Request, res: Response) {
-  let id = await util.getCustomAcousticModelId(req);
-  let audioResources = await util.listAudio(req.app.get('stt_service').credentials, id[1]);
+  let audioResources = await req.watsonSTT.listAudio();
   if (audioResources[0]) {
     return res.status(audioResources[0].code || 500).json({
       error: audioResources[0]
@@ -140,8 +146,7 @@ async function listAudio(req: Request, res: Response) {
 
 async function deleteAudio(req: Request, res: Response) {
   if (req.params.name) {
-    let id = await util.getCustomAcousticModelId(req);
-    let result = await util.deleteAudio(req.app.get('stt_service').credentials, id[1], req.params.name);
+    let result = await req.watsonSTT.deleteAudio(req.params.name);
     if (result[0]) {
       return res.status(result[0].code || 500).json({
         error: result[0]
@@ -160,8 +165,7 @@ async function deleteAudio(req: Request, res: Response) {
 }
 
 async function postCorpus(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req);
-  let result = await util.addCorpus(req.app.get('stt_service').credentials, id[1], req.body.corpusName, req.body.corpus);
+  let result = await req.watsonSTT.addCorpus(req.body.corpusName, req.body.corpus);
 
   if (result[0]) {
     return res.status(result[0].code).json({
@@ -176,8 +180,7 @@ async function postCorpus(req: Request, res: Response) {
 
 async function deleteCorpus(req: Request, res: Response) {
   if (req.params.name) {
-    let id = await util.getCustomModelId(req);
-    let result = await util.deleteCorpus(req.app.get('stt_service').credentials, id[1], req.params.name);
+    let result = await req.watsonSTT.deleteCorpus(req.params.name);
     if (result[0]) {
       return res.status(result[0].code).json({
         error: result[0]
@@ -196,8 +199,7 @@ async function deleteCorpus(req: Request, res: Response) {
 }
 
 async function getCorpora(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req);
-  let corpora = await util.getCorpora(req.app.get('stt_service').credentials, id[1]);
+  let corpora = await req.watsonSTT.getCorpora();
   if (corpora[0]) {
     return res.status(corpora[0].code).json({
       error: corpora[0]
@@ -210,8 +212,7 @@ async function getCorpora(req: Request, res: Response) {
 }
 
 async function getWords(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req);
-  let words = await util.listWords(req.app.get('stt_service').credentials, id[1]);
+  let words = await req.watsonSTT.listWords();
   if (words[0]) {
     return res.status(500).json({
       error: words[0]
@@ -224,10 +225,8 @@ async function getWords(req: Request, res: Response) {
 }
 
 async function addWord(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req);
-  let result = await util.addWord(
-    req.app.get('stt_service').credentials, id[1], req.body.word,
-    req.body.sounds_like, req.body.display_as
+  let result = await req.watsonSTT.addWord(
+    req.body.word, req.body.sounds_like, req.body.display_as
   );
   if (result[0]) {
     return res.status(result[0].code).json({
@@ -243,8 +242,7 @@ async function addWord(req: Request, res: Response) {
 
 async function deleteWord(req: Request, res: Response) {
   if (req.params.name) {
-    let id = await util.getCustomModelId(req);
-    let result = await util.deleteWord(req.app.get('stt_service').credentials, id[1], req.params.name);
+    let result = await req.watsonSTT.deleteWord(req.params.name);
     if (result[0]) {
       return res.status(result[0].code).json({
         error: result[0]
@@ -263,8 +261,7 @@ async function deleteWord(req: Request, res: Response) {
 }
 
 async function trainModel(req: Request, res: Response) {
-  let id = await util.getCustomModelId(req);
-  let result = await util.trainModel(req.app.get('stt_service').credentials, id[1]);
+  let result = await req.watsonSTT.trainModel();
   if (result[0]) {
     return res.status(result[0].code).json({
       error: result[0]
@@ -277,12 +274,8 @@ async function trainModel(req: Request, res: Response) {
 }
 
 async function trainAcousticModel(req: Request, res: Response) {
-  let id = await util.getCustomAcousticModelId(req);
-
   // Get the customization ID of the custom language model to pass in for training.
-  let langId = await util.getCustomModelId(req);
-
-  let result = await util.trainAcousticModel(req.app.get('stt_service').credentials, id[1], langId[1]);
+  let result = await req.watsonSTT.trainAcousticModel();
   if (result[0]) {
     return res.status(result[0].code).json({
       error: result[0]
@@ -294,8 +287,17 @@ async function trainAcousticModel(req: Request, res: Response) {
   }
 }
 
+async function checkWatsonCredential(req: Request, res: Response, next: NextFunction) {
+  let watsonSTT: WatsonSTT = await WatsonSTT.getInstance(req);
+  if (watsonSTT === undefined) {
+    req.log.error('Can not connect to Watson service');
+    next({error: 'Can not connect to Watson service, please check server logs'});
+  }
+  req.watsonSTT = watsonSTT;
+  next();
+}
 export {
   uploadAudio, postTranscribe, getModel, getAcousticModel, deleteCorpus, postCorpus,
   postAudio, listAudio, deleteAudio, getCorpora, getWords,
-  addWord, deleteWord, trainModel, trainAcousticModel
+  addWord, deleteWord, trainModel, trainAcousticModel, checkWatsonCredential
 };
