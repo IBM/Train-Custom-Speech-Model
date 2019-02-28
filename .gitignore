@@ -4,6 +4,7 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.pyc
 
 # Runtime data
 pids
@@ -66,3 +67,11 @@ dist/
 yalc.lock
 package-lock.json
 services.json
+
+# data directories
+data/Audio
+data/Documents
+data/*.zip
+data/*.txt
+data/*.input
+data/*.corpus
