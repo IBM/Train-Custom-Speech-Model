@@ -1,3 +1,5 @@
+[![Build Status](https://api.travis-ci.org/IBM/Train-Custom-Speech-Model.svg?branch=master)](https://travis-ci.org/IBM/Train-Custom-Speech-Model)
+
 # Create a customer Watson Speech model using new data from your special domain
 
 In this developer journey, we will create a custom speech to text model. Watson Speech service is among the best in the industry.  However, like other Cloud Speech services, it was trained with general conversational speech for general use;  therefore it may not perform well in specialized domain such as medicine, law, sport, etc.  To improve the accuracy of the speech to text service, you can leverage transfer learning by training the existing AI model with new data from your domain.  We will use a medical speech data set to illustrate the process, but you can use any specialized data set.
