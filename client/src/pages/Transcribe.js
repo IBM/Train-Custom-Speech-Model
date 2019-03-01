@@ -133,7 +133,8 @@ export default class Transcribe extends Component {
                 });
               }
               else {
-                this.setState({ error: 'Could not add audio resource. HTTP Status Code: ' + response.status });
+                this.setState({ error: 'Could not add audio resource. HTTP Status Code: '
+                              + response.status });
               }
               this.setState({ isSubmitting: false });
             })
@@ -193,7 +194,8 @@ export default class Transcribe extends Component {
                     placeholder="select"
                     inputRef={languageModelType => this.languageModelType = languageModelType}>
                     { localStorage.getItem('customModel') &&
-                      <option value={localStorage.getItem('customModel')}>Custom Language Model</option>
+                      <option value={localStorage.getItem('customModel')}>
+                        Custom Language Model</option>
                     }
                     <option value={config.BASE_STT_MODEL}>Base Language Model</option>
                   </FormControl>
@@ -205,7 +207,8 @@ export default class Transcribe extends Component {
                     placeholder="select"
                     inputRef={acousticModelType => this.acousticModelType = acousticModelType}>
                     { localStorage.getItem('customAcousticModel') &&
-                      <option value={localStorage.getItem('customAcousticModel')}>Custom Acoustic Model</option>
+                      <option value={localStorage.getItem('customAcousticModel')}>
+                        Custom Acoustic Model</option>
                     }
                     <option value={config.BASE_STT_MODEL}>Base Acousstic Model</option>
                   </FormControl>
