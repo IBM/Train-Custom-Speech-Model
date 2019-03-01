@@ -2,11 +2,11 @@
   "user1": {
     "password": "user1",
     "langModel": "custom-model-1",
-    "acousticModel": "Acoustic-model-1"
+    "acousticModel": "acoustic-model-1"
   },
   "user2": {
     "password": "user2",
     "langModel": "custom-model-2",
-    "acousticModel": "Acoustic-model-1"
+    "acousticModel": "acoustic-model-2"
   }
 }
