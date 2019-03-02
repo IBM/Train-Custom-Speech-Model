@@ -110,6 +110,9 @@ export default class Words extends Component {
         <h2>Custom Word List ({this.state.words.length})</h2>
         <p>These are the out-of-vocabulary words extracted from all the submitted corpora.</p>
         { this.state.isLoading && <Glyphicon glyph="refresh" className="tableload" /> }
+        { !this.state.isLoading && this.state.words.length <= 0 &&
+          <p><br /><strong>No out-of-vocabulary words</strong></p>
+        }
         { !this.state.isLoading && this.state.words.length > 0 &&
           this.state.words.map((word, index) => {
               return (

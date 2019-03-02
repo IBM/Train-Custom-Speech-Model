@@ -38,13 +38,7 @@ interface RecognizeParams {
 async function postTranscribe (req: Request, res: Response) {
   let bufferStream = new stream.PassThrough();
   bufferStream.end( req.file.buffer );
-  let types = ['wav', 'mp3', 'flac'];
   let type = req.file.originalname.split('.').pop();
-  if (types.indexOf(type) == -1) {
-    return res.status(400).json({
-      error: `File extension must be one of: ${types.join(',')}`
-    });
-  }
 
   let recognizeParams: RecognizeParams = {
     audio: bufferStream,
@@ -77,13 +71,13 @@ async function postTranscribe (req: Request, res: Response) {
       });
     }
   });
-  return null;
+  return;
 };
 
 async function getModel(req: Request, res: Response) {
   let result = await req.watsonSTT.getLanguageModel();
   if (result[0]) {
-    return res.status(result[0].code).json({
+    return res.status(500).json({
       error: result[0]
     });
   } else {
@@ -96,7 +90,7 @@ async function getModel(req: Request, res: Response) {
 async function getAcousticModel(req: Request, res: Response) {
   let result = await req.watsonSTT.getAcousticModel();
   if (result[0]) {
-    return res.status(result[0].code || 500).json({
+    return res.status(500).json({
       error: result[0]
     });
   } else {
@@ -109,19 +103,30 @@ async function getAcousticModel(req: Request, res: Response) {
 async function postAudio(req: Request, res: Response) {
   let bufferStream = new stream.PassThrough();
   bufferStream.end( req.file.buffer );
+
   let type = req.file.originalname.split('.').pop();
+  let contentType;
+  if (type === 'zip') {
+    contentType = 'application/zip';
+  }
+  else if (['tgz', 'gz'].indexOf(type) >= 0) {
+    contentType = 'application/gzip';
+  }
+  // Else assume it is audio type.
+  else {
+    contentType = 'audio/' + type;
+  }
 
   let params = {
     customization_id: req.watsonSTT.acousticModelId,
-    content_type: 'audio/' + type,
+    content_type: contentType,
     audio_resource: bufferStream,
-    audio_name: req.body.corpusName + '-audio'
+    audio_name: req.body.audioName
   };
-
   let result = await req.watsonSTT.addAudio(params);
 
   if (result[0]) {
-    return res.status(result[0].code || 500).json({
+    return res.status(500).json({
       error: result[0]
     });
   } else {
@@ -134,7 +139,7 @@ async function postAudio(req: Request, res: Response) {
 async function listAudio(req: Request, res: Response) {
   let audioResources = await req.watsonSTT.listAudio();
   if (audioResources[0]) {
-    return res.status(audioResources[0].code || 500).json({
+    return res.status(500).json({
       error: audioResources[0]
     });
   } else {
@@ -148,7 +153,7 @@ async function deleteAudio(req: Request, res: Response) {
   if (req.params.name) {
     let result = await req.watsonSTT.deleteAudio(req.params.name);
     if (result[0]) {
-      return res.status(result[0].code || 500).json({
+      return res.status(500).json({
         error: result[0]
       });
     } else {
@@ -168,7 +173,7 @@ async function postCorpus(req: Request, res: Response) {
   let result = await req.watsonSTT.addCorpus(req.body.corpusName, req.body.corpus);
 
   if (result[0]) {
-    return res.status(result[0].code).json({
+    return res.status(500).json({
       error: result[0]
     });
   } else {
@@ -182,7 +187,7 @@ async function deleteCorpus(req: Request, res: Response) {
   if (req.params.name) {
     let result = await req.watsonSTT.deleteCorpus(req.params.name);
     if (result[0]) {
-      return res.status(result[0].code).json({
+      return res.status(500).json({
         error: result[0]
       });
     } else {
@@ -201,7 +206,7 @@ async function deleteCorpus(req: Request, res: Response) {
 async function getCorpora(req: Request, res: Response) {
   let corpora = await req.watsonSTT.getCorpora();
   if (corpora[0]) {
-    return res.status(corpora[0].code).json({
+    return res.status(500).json({
       error: corpora[0]
     });
   } else {
@@ -229,7 +234,7 @@ async function addWord(req: Request, res: Response) {
     req.body.word, req.body.sounds_like, req.body.display_as
   );
   if (result[0]) {
-    return res.status(result[0].code).json({
+    return res.status(500).json({
       error: result[0]
     });
   } else {
@@ -244,7 +249,7 @@ async function deleteWord(req: Request, res: Response) {
   if (req.params.name) {
     let result = await req.watsonSTT.deleteWord(req.params.name);
     if (result[0]) {
-      return res.status(result[0].code).json({
+      return res.status(500).json({
         error: result[0]
       });
     } else {
@@ -263,7 +268,7 @@ async function deleteWord(req: Request, res: Response) {
 async function trainModel(req: Request, res: Response) {
   let result = await req.watsonSTT.trainModel();
   if (result[0]) {
-    return res.status(result[0].code).json({
+    return res.status(500).json({
       error: result[0]
     });
   } else {
@@ -277,7 +282,7 @@ async function trainAcousticModel(req: Request, res: Response) {
   // Get the customization ID of the custom language model to pass in for training.
   let result = await req.watsonSTT.trainAcousticModel();
   if (result[0]) {
-    return res.status(result[0].code).json({
+    return res.status(500).json({
       error: result[0]
     });
   } else {

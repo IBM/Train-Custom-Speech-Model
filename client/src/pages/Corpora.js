@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
-import { Button, Table, Glyphicon } from 'react-bootstrap';
+import {
+  Button, Table, Glyphicon, FormGroup, FormControl, ControlLabel, HelpBlock, Panel
+} from 'react-bootstrap';
+import LoadButton from '../components/LoadButton';
 import './Corpora.css';
 
 /**
@@ -11,11 +14,16 @@ export default class Corpora extends Component {
   constructor(props) {
     super(props);
 
+    this.fileContents = '';
+
     this.state = {
       isLoading: false,
       corpora: [],
       error: '',
       isDeleting: false,
+      isUploading: false,
+      fileUploadOpen: false,
+      filename: ''
     };
   }
 
@@ -26,6 +34,53 @@ export default class Corpora extends Component {
 
   componentWillUnmount() {
    clearInterval(this.interval);
+  }
+
+  handlePanelToggle = event => {
+    this.setState({ 'fileUploadOpen': !this.state.fileUploadOpen });
+  }
+
+  handleFileChange = event => {
+    this.fileReader = new FileReader();
+    this.fileReader.onloadend = () => { this.fileContents = this.fileReader.result; };
+    this.fileReader.readAsText(event.target.files[0]);
+    this.setState({ 'filename': event.target.files[0].name });
+  }
+
+
+  uploadCorpora = event => {
+    event.preventDefault();
+    this.setState({ isUploading: true });
+    fetch('/api/corpora', {
+      method: 'POST',
+      body: JSON.stringify({'corpusName': this.state.filename, 'corpus': this.fileContents}),
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        response.json().then((data) => {
+          // Start polling corpora
+          this.fileContents = '';
+          this.handlePanelToggle();
+          this.setState({ 'filename': '' });
+          this.handleGetList();
+          this.interval = setInterval(this.pollCorpora, 3000);
+        });
+      }
+      else {
+        this.setState({ error: 'Could not add corpus. HTTP Status Code: '
+                      + response.status });
+      }
+      this.setState({ isUploading: false });
+    })
+    .catch((err) => {
+      console.log('Could not add corpus: ', err);
+      this.setState({ error: 'Could not add corpus: ' + err });
+      this.setState({ isUploading: false });
+    });
   }
 
   checkCorporaProcessing = () => {
@@ -119,7 +174,57 @@ export default class Corpora extends Component {
            a <a href="/train" title="Train">training session</a> for the custom language model
            with the new data.
         </p>
+        <Panel
+          id="collapsible-panel-upload"
+          onToggle={this.handlePanelToggle}
+          expanded={this.state.fileUploadOpen}
+        >
+          <Panel.Heading>
+            <Panel.Title toggle>
+              Upload Corpus{' '}
+              <span className='panel-arrow'>
+              { this.state.fileUploadOpen
+                ? <Glyphicon glyph="chevron-down" />
+                : <Glyphicon glyph="chevron-right" />
+              }
+              </span>
+            </Panel.Title>
+          </Panel.Heading>
+          <Panel.Collapse>
+            <Panel.Body>
+              <form onSubmit={this.uploadCorpora}>
+              <FormGroup controlId="file">
+                <ControlLabel>Upload Corpus Text File</ControlLabel><br />
+                <ControlLabel className="corpuslabel">
+                  <Glyphicon glyph="open" />{' '}
+                  {this.state.filename ? this.state.filename : 'Browse...'}
+                </ControlLabel>
+                <FormControl
+                  onChange={this.handleFileChange}
+                  type="file"
+                  accept=".txt"
+                  className="corpusfile"/>
+                <HelpBlock>
+                  Accepted file types: .txt
+                </HelpBlock>
+              </FormGroup>
+              <LoadButton
+               block
+               bsStyle="primary"
+               disabled={!this.state.filename}
+               type="submit"
+               isLoading={this.state.isUploading}
+               text="Upload"
+               loadingText="Uploading…"
+              />
+              </form>
+            </Panel.Body>
+          </Panel.Collapse>
+        </Panel>
         { this.state.isLoading && <Glyphicon glyph="refresh" className="tableload" /> }
+        { !this.state.isLoading && this.state.corpora.length <= 0 &&
+          <p><br /><strong>No corpora added</strong></p>
+        }
         { !this.state.isLoading && this.state.corpora.length > 0 &&
           <Table striped bordered condensed hover>
             <thead>

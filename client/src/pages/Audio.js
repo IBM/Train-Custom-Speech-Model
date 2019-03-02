@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
-import { Button, Table, Glyphicon } from 'react-bootstrap';
+import {
+  Button, Table, Glyphicon, FormGroup, FormControl, ControlLabel, HelpBlock, Panel
+} from 'react-bootstrap';
+import LoadButton from '../components/LoadButton';
 import './Audio.css';
 
 /**
@@ -11,11 +14,16 @@ export default class Audio extends Component {
   constructor(props) {
     super(props);
 
+    this.file = null;
+
     this.state = {
       isLoading: false,
       audio: [],
       error: '',
       isDeleting: false,
+      isUploading: false,
+      fileUploadOpen: false,
+      filename: ''
     };
   }
 
@@ -26,6 +34,51 @@ export default class Audio extends Component {
 
   componentWillUnmount() {
    clearInterval(this.interval);
+  }
+
+  handlePanelToggle = event => {
+    this.setState({ 'fileUploadOpen': !this.state.fileUploadOpen });
+  }
+
+  handleFileChange = event => {
+    this.file = event.target.files[0];
+    this.setState({ 'filename': this.file.name });
+  }
+
+  uploadAudio = event => {
+    event.preventDefault();
+
+    this.setState({ isUploading: true });
+    let formData  = new FormData();
+    formData.append('audio', this.file);
+    formData.append('audioName', this.state.filename);
+    fetch('/api/audio', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        response.json().then((data) => {
+          // Start polling audio
+          this.file = null;
+          this.handlePanelToggle();
+          this.setState({ 'filename': '' });
+          this.handleGetList();
+          this.interval = setInterval(this.pollAudio, 3000);
+        });
+      }
+      else {
+        this.setState({ error: 'Could not add audio resource. HTTP Status Code: '
+                      + response.status });
+      }
+      this.setState({ isUploading: false });
+    })
+    .catch((err) => {
+      console.log('Could not add audio resource: ', err);
+      this.setState({ error: 'Could not add audio resource: ' + err });
+      this.setState({ isUploading: false });
+    });
   }
 
   checkAudioProcessing = () => {
@@ -119,7 +172,60 @@ export default class Audio extends Component {
            a <a href="/train" title="Train">training session</a> for the custom acoustic model
            with the new data.
         </p>
+        <Panel
+          id="collapsible-panel-upload"
+          onToggle={this.handlePanelToggle}
+          expanded={this.state.fileUploadOpen}
+        >
+          <Panel.Heading>
+            <Panel.Title toggle>
+              Upload Audio Resource{' '}
+              <span className='panel-arrow'>
+              { this.state.fileUploadOpen
+                ? <Glyphicon glyph="chevron-down" />
+                : <Glyphicon glyph="chevron-right" />
+              }
+              </span>
+            </Panel.Title>
+          </Panel.Heading>
+          <Panel.Collapse>
+            <Panel.Body>
+              <form onSubmit={this.uploadAudio}>
+              <FormGroup controlId="file">
+                <ControlLabel>Upload Audio File or Archive</ControlLabel><br />
+                <ControlLabel className="audiolabel">
+                  <Glyphicon glyph="open" />{' '}
+                  {this.state.filename ? this.state.filename : 'Browse...'}
+                </ControlLabel>
+                <FormControl
+                  onChange={this.handleFileChange}
+                  type="file"
+                  accept="audio/*, .zip, .tgz, .tar.gz"
+                  className="audiofile"/>
+                <HelpBlock>
+                  Accepted file types: .wav, .mp3, .flac, .zip, .tar.gz<br />
+                  Adding multiple audio files via a single archive file is significantly more
+                  efficient than adding each file individually.
+                </HelpBlock>
+              </FormGroup>
+              <LoadButton
+               block
+               bsStyle="primary"
+               disabled={!this.state.filename}
+               type="submit"
+               isLoading={this.state.isUploading}
+               text="Upload"
+               loadingText="Uploading…"
+              />
+              </form>
+            </Panel.Body>
+          </Panel.Collapse>
+        </Panel>
+
         { this.state.isLoading && <Glyphicon glyph="refresh" className="tableload" /> }
+        { !this.state.isLoading && this.state.audio.length <= 0 &&
+          <p><br /><strong>No audio resources</strong></p>
+        }
         { !this.state.isLoading && this.state.audio.length > 0 &&
           <Table striped bordered condensed hover>
             <thead>
