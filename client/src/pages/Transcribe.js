@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import {
-  Checkbox, Panel, FormGroup, FormControl, ControlLabel,
+  Checkbox, Panel, Form, FormGroup, FormControl, ControlLabel,
   Glyphicon, HelpBlock, OverlayTrigger, Tooltip
 } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
@@ -85,7 +85,7 @@ export default class Transcribe extends Component {
       }
     })
     .catch((err) => {
-      console.log('unable to  ', err);
+      console.log('Unable to transcribe: ', err);
       this.setState({ isTranscribing: false });
     });
   }
@@ -112,14 +112,12 @@ export default class Transcribe extends Component {
     .then((response) => {
       if (response.status === 200) {
         response.json().then((data) => {
-          console.log('Done corpora');
           // Corpora uploaded successfully, so upload audio resource if option was selected.
           if (this.state.improveAcousticChecked) {
 
             let formData  = new FormData();
             formData.append('audio', this.file);
-            formData.append('corpusName', this.state.corpusName);
-            console.log(formData);
+            formData.append('audioName', this.state.corpusName + '-audio');
             fetch('/api/audio', {
               method: 'POST',
               body: formData,
@@ -140,7 +138,7 @@ export default class Transcribe extends Component {
             })
             .catch((err) => {
               console.log('Could not add audio resource: ', err);
-              this.setState({ error: 'Could not audio resource: ' + err });
+              this.setState({ error: 'Could not add audio resource: ' + err });
               this.setState({ isSubmitting: false });
             });
           }
@@ -186,15 +184,15 @@ export default class Transcribe extends Component {
           </Panel.Heading>
           <Panel.Collapse>
             <Panel.Body>
-              <form onSubmit={this.handleTranscribe}>
+              <Form onSubmit={this.handleTranscribe}>
                 <FormGroup controlId="formControlsSelect">
                   <ControlLabel>Select Language Model</ControlLabel>
                   <FormControl
                     componentClass="select"
                     placeholder="select"
                     inputRef={languageModelType => this.languageModelType = languageModelType}>
-                    { localStorage.getItem('customModel') &&
-                      <option value={localStorage.getItem('customModel')}>
+                    { localStorage.getItem('customLanguageModel') &&
+                      <option value={localStorage.getItem('customLanguageModel')}>
                         Custom Language Model</option>
                     }
                     <option value={config.BASE_STT_MODEL}>Base Language Model</option>
@@ -210,7 +208,7 @@ export default class Transcribe extends Component {
                       <option value={localStorage.getItem('customAcousticModel')}>
                         Custom Acoustic Model</option>
                     }
-                    <option value={config.BASE_STT_MODEL}>Base Acousstic Model</option>
+                    <option value={config.BASE_STT_MODEL}>Base Acoustic Model</option>
                   </FormControl>
                   <HelpBlock>Choose your customized acoustic model or the base model.</HelpBlock>
                 </FormGroup>
@@ -223,7 +221,7 @@ export default class Transcribe extends Component {
                   <FormControl
                     onChange={this.handleFileChange}
                     type="file"
-                    accept=".wav, .mp3, .flac"
+                    accept="audio/*"
                     className="audiofile"/>
                   <HelpBlock>Accepted file types: .wav, .mp3, and .flac</HelpBlock>
                 </FormGroup>
@@ -236,7 +234,7 @@ export default class Transcribe extends Component {
                  text="Transcribe"
                  loadingText="Transcribing…"
                 />
-              </form>
+              </Form>
               <AlertDismissable
                 title="Transcribe Error"
                 message={this.state.error}

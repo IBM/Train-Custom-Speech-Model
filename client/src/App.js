@@ -26,8 +26,8 @@ class App extends Component {
           this.userHasAuthenticated(true);
           response.json().then((data) => {
             localStorage.setItem('username', data.user.username);
-            localStorage.setItem('customModel', data.user.customModel);
-            localStorage.setItem('customAcousticModel', data.user.customAcousticModel);
+            localStorage.setItem('customLanguageModel', data.user.langModel);
+            localStorage.setItem('customAcousticModel', data.user.acousticModel);
           });
         }
         this.setState({ isAuthenticating: false });
