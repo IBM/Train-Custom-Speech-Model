@@ -2,24 +2,24 @@
 
 # Create a customer Watson Speech model using new data from your special domain
 
-In this developer journey, we will create a custom speech to text model. Watson Speech service is among the best in the industry. However, like other Cloud Speech services, it was trained with general conversational speech for general use; therefore it may not perform well in specialized domain such as medicine, law, sport, etc. To improve the accuracy of the speech to text service, you can leverage transfer learning by training the existing AI model with new data from your domain. We will use a medical speech data set to illustrate the process, but you can use any specialized data set.
+In this code pattern, we will create a custom speech to text model. The `Watson Speech to Text` service is among the best in the industry. However, like other Cloud speech services, it was trained with general conversational speech for general use; therefore it may not perform well in specialized domains such as medicine, law, sports, etc. To improve the accuracy of the speech-to-text service, you can leverage transfer learning by training the existing AI model with new data from your domain. We will use a medical speech data set to illustrate the process, but you can use any your own specialized data set.
 
-When the reader has completed this journey, they will understand how to:
+When the reader has completed this code pattern, they will understand how to:
 
-* Prepare audio data and transcription for training a speech to text model
-* Work with Watson Speech service through API calls
-* Train a custom speech to text model with a batch of data
-* Train the model with continuous user feedback
+* Prepare audio data and transcription text for training a speech-to-text model.
+* Work with the `Watson Speech to Text` service through API calls.
+* Train a custom speech-to-text model with a data set.
+* Enhance the model with continuous user feedback.
 
 ![architecture](doc/source/images/architecture.png)
 
 ## Flow
 
-1. The user downloads the custom dataset and prepares the audio and text data for training.
-1. The user sets up access to the Watson Speech service by configuring the credential.
-1. The user uses the provided web front-end or command line to run training using the batch of data.
+1. The user downloads the custom data set and prepares the audio and text data for training.
+1. The user sets up access to the `Watson Speech to Text` service by configuring the credentials.
+1. The user uses the provided application GUI or command line to run training using the batch of data.
 1. The user interactively tests the new custom Speech model by speaking phrases to the computer microphone and verify the text transcription returned from the model.
-1. If the text transcription is not correct, the user can make correction and resubmit the updated data for training.
+1. If the text transcription is not correct, the user can make corrections and resubmit the updated data for training.
 1. Several users can work on the same custom model at the same time.
 
 ## Included components
