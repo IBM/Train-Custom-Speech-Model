@@ -5,12 +5,13 @@
   "main": "npm run-script start",
   "scripts": {
     "start": "npm run build && npm run serve",
-    "build": "tsc",
+    "build": "npm run lint && tsc",
     "serve": "node dist/server.js | bunyan",
     "test": "echo \"Error: no test specified\" && exit 1",
     "client": "cd client && npm run start",
     "server": "node dist/server.js",
-    "dev": "concurrently --kill-others-on-fail \"npm run start\" \"npm run client\""
+    "dev": "concurrently --kill-others-on-fail \"npm run start\" \"npm run client\"",
+    "lint": "tslint --project tsconfig.json -c tslint.json 'server/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,7 @@
     "@types/passport-local": "^1.0.33",
     "shelljs": "^0.8.2",
     "ts-node": "^7.0.1",
+    "tslint": "^5.13.1",
     "typescript": "^3.0.1"
   },
   "dependencies": {

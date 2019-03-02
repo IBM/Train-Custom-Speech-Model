@@ -1,1 +1,1 @@
-declare module "cfenv";
+declare module 'cfenv';
