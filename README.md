@@ -1,8 +1,10 @@
 [![Build Status](https://api.travis-ci.org/IBM/Train-Custom-Speech-Model.svg?branch=master)](https://travis-ci.org/IBM/Train-Custom-Speech-Model)
 
-# Create a customer Watson Speech model using new data from your special domain
+# Create a custom Watson Speech to Text model using specialized domain data
 
-In this code pattern, we will create a custom speech to text model. The `Watson Speech to Text` service is among the best in the industry. However, like other Cloud speech services, it was trained with general conversational speech for general use; therefore it may not perform well in specialized domains such as medicine, law, sports, etc. To improve the accuracy of the speech-to-text service, you can leverage transfer learning by training the existing AI model with new data from your domain. We will use a medical speech data set to illustrate the process, but you can use any your own specialized data set.
+In this code pattern, we will create a custom speech to text model. The `Watson Speech to Text` service is among the best in the industry. However, like other Cloud speech services, it was trained with general conversational speech for general use; therefore it may not perform well in specialized domains such as medicine, law, sports, etc. To improve the accuracy of the speech-to-text service, you can leverage transfer learning by training the existing AI model with new data from your domain.
+
+In this example, we will use a medical speech data set to illustrate the process. The data is provided by [ezDI](https://www.ezdi.com) and includes 16 hours of medical dictation in both audio and text files.
 
 When the reader has completed this code pattern, they will understand how to:
 
@@ -25,7 +27,6 @@ When the reader has completed this code pattern, they will understand how to:
 ## Included components
 
 * [IBM Watson Speech to Text](https://www.ibm.com/watson/services/speech-to-text): easily convert audio and voice into written text for quick understanding of content.
-* A real dataset with 16 hours of medical dictation, provided by [ezDI](https://www.ezdi.com).
 
 ## Featured technologies
 
@@ -153,7 +154,11 @@ npm run dev
 
 The local nodejs web server will automatically open your browser to [http://localhost:3000](http://localhost:3000).
 
+![main-page](doc/source/images/main-page.png)
+
 Select the `Train` tab to show the training options. Train both the `Language Model` and `Acoustic Model`.
+
+![training-status](doc/source/images/training-panel.png)
 
 > Note: Training the acoustic model can potentially take hours to complete.
 
@@ -203,7 +208,7 @@ python ../cmd/add_corpus.py corpus-1.input
 python ../cmd/list_corpus.py
 ```
 
-This step will also save a new list of `Out-Of-Vocabulary` words in a file (the file will be created in current directory and will end in `OOVs.corpus`). It may be useful to check the words in the file to see if there are any unexpected words that you don't want to train the model with.
+This step will also save a new list of `Out-Of-Vocabulary` words in a file (the file will be created in current directory and will end in `OOVs.corpus`). `Out-Of-Vocabulary` words are words that are not a part of the basic Watson Speech-to-Text service, but will be added and used to train the language model. It may be useful to check the words in the file to see if there are any unexpected words that you don't want to train the model with.
 
 The status of the custom language model should now be set to *"ready"*. Now we can train the language model using the medical transcription.
 
@@ -269,6 +274,18 @@ python ../cmd/transcribe.py <my_dictation.wav>
 
 ## 7. Correct the transcription
 
+If you detect errors in the transcribed text, you can re-train the models by submitting corrected transcriptions.
+
+If using the application, from the `Transcribe` panel, correct the transribed text.
+
+![re-train](doc/source/images/re-train.png)
+
+If the audio file being transcribed is not already included in the acoustic model, check the `Add audio file to acoustic model` checkbox.
+
+Enter a corpus name, and hit `Submit`.
+
+The language and acoustic models will be re-trained with the new files.
+
 # Sample output
 
 * The main GUI screen:
@@ -283,15 +300,23 @@ python ../cmd/transcribe.py <my_dictation.wav>
 
 ![custom-words](doc/source/images/custom-word-list.png)
 
+> Note: These are the words that are not a part of the base `Watson Speech to Text` service, but will be added to the language model.
+
 # Links
 
 * [Demo on Youtube](https://www.youtube.com/watch?v=Jxi7U7VOMYg)
 
 # Troubleshooting
 
-* Error: message
+* Error: Please set your username in the environment variable USERNAME.
+If you use IAM service credentials, set USERNAME set to the string "apikey"
+and set PASSWORD to the value of your IAM API key.
 
-  > Common error conditions ...
+  > If you choose to use the command line, make sure you set up your environemnt variables.
+
+* *409* error message.
+
+  > This indicates the service is busy. Try the command again later.
 
 # Learn more
 
