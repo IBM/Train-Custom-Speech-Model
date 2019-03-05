@@ -95,7 +95,7 @@ The data needs careful preparation since our deep learning model will only be as
 
 Although the dataset from `ezDI` is already curated, a quick scan of the text transcription files will reveal some filler text that would not help the training. These unwanted text strings have been collected in the file [data/fixup.sed](data/fixup.sed) and can be removed from the text files by using the *sed* utility.
 
-Also, for the purpose of training, we will need to combine all text files into a into single package, called a `corpus` file.
+Also, for the purpose of training, we will need to combine all text files a into single package, called a `corpus` file.
 
 To remove the unwanted text strings and to combine all of the text files into a single `corpus` file, perform the following command:
 
