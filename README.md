@@ -272,7 +272,7 @@ If using the command line, enter the following:
 python ../cmd/transcribe.py <my_dictation.wav>
 ```
 
-Similarly to the application, you can set or unset the environment variables `LANGUAGE_ID` and `ACOUSTIC_ID` to select any combination of base or custom model for language and acoustic.  If the corresponding variable is unset, the base model will be used.  The transcription will be displayed on the terminal as well as written to a file with the same name as the audio file but with the file extension `.transcript`.
+Similarly to the application, you can set or unset the environment variables `LANGUAGE_ID` and `ACOUSTIC_ID` to select any combination of base or custom model for language and acoustic. If the corresponding variable is unset, the base model will be used. The transcription will be displayed on the terminal as well as written to a file with the same name as the audio file but with the file extension `.transcript`.
 
 ## 7. Correct the transcription
 
@@ -288,7 +288,9 @@ Enter a corpus name, and hit `Submit`.
 
 The language and acoustic models will be re-trained with the new files.
 
-If using the command line, you can edit the transcription output file directly, then add the corrected text as a new corpus and the audio files as new audio sources.  It would be more efficient to aggregate many corrected text and audio clips to train.
+If using the command line, you can directly edit the transcription output file generated in the previous step. You can then add the corrected text as a new corpus, and add the audio file as a new audio source.
+
+> Note: If correcting multiple transcriptions, it will be more efficient to aggregate the corrected text files and audio clips before re-training the models. (See [Step #4](#4-download-and-prepare-the-data) for examples on how to aggregate the files, and [Step #5](#5-train-the-models) for how to re-train the models using the command line)
 
 # Sample output
 
@@ -312,9 +314,7 @@ If using the command line, you can edit the transcription output file directly, 
 
 # Troubleshooting
 
-* Error: Please set your username in the environment variable USERNAME.
-If you use IAM service credentials, set USERNAME set to the string "apikey"
-and set PASSWORD to the value of your IAM API key.
+* Error: Please set your username in the environment variable USERNAME. If you use IAM service credentials, set USERNAME set to the string "apikey" and set PASSWORD to the value of your IAM API key.
 
   > If you choose to use the command line, make sure you set up your environemnt variables.
 
