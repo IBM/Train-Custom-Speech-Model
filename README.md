@@ -264,13 +264,15 @@ python ../cmd/list_acoustic_model.py
 
 To try out the model, either create your own recorded medical dictation in wav format (use 8KHz sampling rate), or use one of the first 5 test wav files located in `/data/Audio` (remember, we left those out of the data set used to train the model).
 
-If running the application, click on the `Transcribe` tab and then browse to your wav file.
+If running the application, click on the `Transcribe` tab and then browse to your wav file.  You can select any combination of base or custom model for language and acoustic.  Using custom model for both should give the best result.
 
 If using the command line, enter the following:
 
 ```bash
 python ../cmd/transcribe.py <my_dictation.wav>
 ```
+
+Similarly to the application, you can set or unset the environment variables `LANGUAGE_ID` and `ACOUSTIC_ID` to select any combination of base or custom model for language and acoustic.  If the corresponding variable is unset, the base model will be used.  The transcription will be displayed on the terminal as well as written to a file with the same name as the audio file but with the file extension `.transcript`.
 
 ## 7. Correct the transcription
 
@@ -285,6 +287,8 @@ If the audio file being transcribed is not already included in the acoustic mode
 Enter a corpus name, and hit `Submit`.
 
 The language and acoustic models will be re-trained with the new files.
+
+If using the command line, you can edit the transcription output file directly, then add the corrected text as a new corpus and the audio files as new audio sources.  It would be more efficient to aggregate many corrected text and audio clips to train.
 
 # Sample output
 
