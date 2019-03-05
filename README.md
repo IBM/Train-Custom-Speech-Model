@@ -19,7 +19,7 @@ When the reader has completed this code pattern, they will understand how to:
 
 1. The user downloads the custom medical dictation data set from [ezDI](https://www.ezdi.com) and prepares the audio and text data for training.
 1. The user interacts with the Watson Speech to Text service via the provided application UI or by executing command line Python scripts.
-1. The user requests the custom data be used to create and train a language and acousic Watson Speech to Text model.
+1. The user requests the custom data be used to create and train a language and acoustic Watson Speech to Text model.
 1. The user interactively tests the new custom model by submitting audio files and verifying the text transcription returned from the model.
 1. If the text transcription is not correct, the user can make corrections and resubmit the updated data for additional training.
 1. Several users can work on the same custom model at the same time.
