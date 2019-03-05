@@ -3,6 +3,7 @@ import {
   Button, Table, Glyphicon, FormGroup, FormControl, ControlLabel, HelpBlock, Panel
 } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
+import AlertDismissable from '../components/AlertDismissable';
 import './Corpora.css';
 
 /**
@@ -19,7 +20,8 @@ export default class Corpora extends Component {
     this.state = {
       isLoading: false,
       corpora: [],
-      error: '',
+      uploadError: '',
+      listError: '',
       isDeleting: false,
       isUploading: false,
       fileUploadOpen: false,
@@ -47,10 +49,14 @@ export default class Corpora extends Component {
     this.setState({ 'filename': event.target.files[0].name });
   }
 
+  handleDismiss = errorType => {
+    this.setState({ [errorType]: '' });
+  }
 
   uploadCorpora = event => {
     event.preventDefault();
     this.setState({ isUploading: true });
+    this.setState({ uploadError: '' });
     fetch('/api/corpora', {
       method: 'POST',
       body: JSON.stringify({'corpusName': this.state.filename, 'corpus': this.fileContents}),
@@ -60,25 +66,23 @@ export default class Corpora extends Component {
       },
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           // Start polling corpora
           this.fileContents = '';
           this.handlePanelToggle();
           this.setState({ 'filename': '' });
           this.handleGetList();
           this.interval = setInterval(this.pollCorpora, 3000);
-        });
-      }
-      else {
-        this.setState({ error: 'Could not add corpus. HTTP Status Code: '
-                      + response.status });
-      }
-      this.setState({ isUploading: false });
+        }
+        else {
+          this.setState({ uploadError: JSON.stringify(data, undefined, 2) });
+        }
+        this.setState({ isUploading: false });
+      });
     })
     .catch((err) => {
-      console.log('Could not add corpus: ', err);
-      this.setState({ error: 'Could not add corpus: ' + err });
+      this.setState({ uploadError: 'Could not add corpus: ' + err });
       this.setState({ isUploading: false });
     });
   }
@@ -111,36 +115,44 @@ export default class Corpora extends Component {
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           let sortedCorpora = this.sortCorpora(data.corpora);
           this.setState({ corpora: sortedCorpora });
           if (!this.checkCorporaProcessing()) {
             clearInterval(this.interval);
           }
-        });
-      }
+        }
+        else {
+          this.setState({ listError: JSON.stringify(data, undefined, 2) });
+          this.setState({ isLoading: false });
+          clearInterval(this.interval);
+        }
+      });
     });
   }
 
   handleGetList = async () => {
+    this.setState({ listError: '' });
     this.setState({ isLoading: true });
     fetch('/api/corpora', {
       method: 'GET',
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           let sortedCorpora = this.sortCorpora(data.corpora);
           this.setState({ corpora: sortedCorpora });
-        });
-      }
-      this.setState({ isLoading: false });
+        }
+        else {
+          this.setState({ listError: JSON.stringify(data, undefined, 2) });
+        }
+        this.setState({ isLoading: false });
+      });
     })
     .catch((err) => {
-      this.setState({ error: err });
-      console.log('Error getting corpora.', err);
+      this.setState({ listError: err });
       this.setState({ isLoading: false });
     });
   }
@@ -152,7 +164,7 @@ export default class Corpora extends Component {
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
+      if (response.ok) {
         this.handleGetList();
       }
       else {
@@ -218,11 +230,16 @@ export default class Corpora extends Component {
                loadingText="Uploading…"
               />
               </form>
+              <AlertDismissable
+                title="Corpus Upload Error"
+                message={this.state.uploadError}
+                show={this.state.uploadError}
+                onDismiss={() => this.handleDismiss('uploadError')} />
             </Panel.Body>
           </Panel.Collapse>
         </Panel>
         { this.state.isLoading && <Glyphicon glyph="refresh" className="tableload" /> }
-        { !this.state.isLoading && this.state.corpora.length <= 0 &&
+        { !this.state.isLoading && this.state.corpora.length <= 0 && !this.state.listError &&
           <p><br /><strong>No corpora added</strong></p>
         }
         { !this.state.isLoading && this.state.corpora.length > 0 &&
@@ -270,6 +287,11 @@ export default class Corpora extends Component {
             </tbody>
           </Table>
         }
+        <AlertDismissable
+          title="Corpus List Error"
+          message={this.state.listError}
+          show={this.state.listError}
+          onDismiss={() => this.handleDismiss('listError')} />
       </div>
     );
   }

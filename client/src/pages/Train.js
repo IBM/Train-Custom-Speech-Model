@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Grid, Row, Col, Well, Glyphicon } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
+import AlertDismissable from '../components/AlertDismissable';
 import './Train.css';
 
 /**
@@ -33,27 +34,31 @@ export default class Train extends Component {
    clearInterval(this.interval);
   }
 
+  handleDismiss = errorType => {
+    this.setState({ [errorType]: '' });
+  }
+
   trainLanguageModel = async event => {
     event.preventDefault();
     this.setState({ isLanguageSubmitting: true });
+    this.setState({ languageModelError: '' });
     fetch('/api/train', {
       method: 'POST',
       credentials: 'include',
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           this.getStatusLanguageModel();
-        });
-      }
-      else {
-        this.setState({ error: 'Error initializing the training.' });
-      }
-      this.setState({ isLanguageSubmitting: false });
+        }
+        else {
+          this.setState({ languageModelError: JSON.stringify(data, undefined, 2) });
+        }
+        this.setState({ isLanguageSubmitting: false });
+      });
     })
     .catch((err) => {
-      console.log('Could not authenticate: ', err);
-      this.setState({ error: 'Error initializing the training: ' + err });
+      this.setState({ languageModelError: 'Error initializing the training: ' + err });
       this.setState({ isLanguageSubmitting: false });
     });
   }
@@ -66,19 +71,18 @@ export default class Train extends Component {
       credentials: 'include',
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           this.getStatusAcousticModel();
-        });
-      }
-      else {
-        this.setState({ error: 'Error initializing the training.' });
-      }
-      this.setState({ isAcousticSubmitting: false });
+        }
+        else {
+          this.setState({ acousticModelError: JSON.stringify(data, undefined, 2) });
+        }
+        this.setState({ isAcousticSubmitting: false });
+      });
     })
     .catch((err) => {
-      console.log('Could not authenticate: ', err);
-      this.setState({ error: 'Error initializing the training: ' + err });
+      this.setState({ acousticModelError: 'Error initializing the training: ' + err });
       this.setState({ isAcousticSubmitting: false });
     });
   }
@@ -143,8 +147,8 @@ export default class Train extends Component {
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           this.setState({ languageModelData: data.data });
           let isNotActive = this.checkModelStatusDone(data.data.status);
           // If polling and if the model is no longer in an active state, stop polling.
@@ -155,15 +159,14 @@ export default class Train extends Component {
           else if (!isNotActive && !poll) {
             this.interval = setInterval(this.pollLanguageModelStatus, 5000);
           }
-        });
-      }
-      else {
-        this.setState({ languageModelError: 'Error getting language model data.' });
-      }
-      if (!poll) this.setState({ isLanguageStatusLoading: false });
+        }
+        else {
+          this.setState({ languageModelError: JSON.stringify(data, undefined, 2) });
+        }
+        if (!poll) this.setState({ isLanguageStatusLoading: false });
+      });
     })
     .catch((err) => {
-      console.log('Error getting language model data: ', err);
       this.setState({ languageModelError: 'Error getting language model data: ' + err });
       if (!poll) this.setState({ isLanguageStatusLoading: false });
     });
@@ -176,27 +179,26 @@ export default class Train extends Component {
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
-          this.setState({ acousticModelData: data.data });
-          let isNotActive = this.checkModelStatusDone(data.data.status);
-          // If polling and if the model is no longer in an active state, stop polling.
-          if (isNotActive && poll) {
-            clearInterval(this.interval);
-          }
-          // If it is in an active state, initiate the polling.
-          else if (!isNotActive && !poll) {
-            this.interval = setInterval(this.pollAcousticModelStatus, 5000);
-          }
-        });
-      }
-      else {
-        this.setState({ acousticModelError: 'Error getting acoustic model data.' });
-      }
-      if (!poll) this.setState({ isAcousticStatusLoading: false });
+      response.json().then((data) => {
+        if (response.ok) {
+            this.setState({ acousticModelData: data.data });
+            let isNotActive = this.checkModelStatusDone(data.data.status);
+            // If polling and if the model is no longer in an active state, stop polling.
+            if (isNotActive && poll) {
+              clearInterval(this.interval);
+            }
+            // If it is in an active state, initiate the polling.
+            else if (!isNotActive && !poll) {
+              this.interval = setInterval(this.pollAcousticModelStatus, 5000);
+            }
+        }
+        else {
+          this.setState({ acousticModelError: JSON.stringify(data, undefined, 2) });
+        }
+        if (!poll) this.setState({ isAcousticStatusLoading: false });
+      });
     })
     .catch((err) => {
-      console.log('Error getting acoustic model data: ', err);
       this.setState({ acousticModelError: 'Error getting acoustic model data: ' + err });
       if (!poll) this.setState({ isAcousticStatusLoading: false });
     });
@@ -205,8 +207,8 @@ export default class Train extends Component {
   render() {
     return (
       <div className="Train">
-        <h1>Train Custom Model</h1>
-        <p>If you have recently added language or audio resources like words or corpora, the model
+        <h1>Train Custom Models</h1>
+        <p>If you have recently added language or audio resources, the model
         needs to be trained to account for the new data. Kick off a training session here. If a
         model's status is <code>ready</code>, then this indicates that the model contains data and
         is ready to be trained. A status of <code>available</code> indicates that the model is
@@ -246,6 +248,11 @@ export default class Train extends Component {
              text="Train Language Model"
              loadingText="Initializing…"
             />
+            <AlertDismissable
+              title="Language Model Error"
+              message={this.state.languageModelError}
+              show={this.state.languageModelError}
+              onDismiss={() => this.handleDismiss('languageModelError')} />
           </Col>
           <Col md={6}>
             <h3>Acoustic Model Status</h3>
@@ -279,6 +286,11 @@ export default class Train extends Component {
              text="Train Acoustic Model"
              loadingText="Initializing…"
             />
+            <AlertDismissable
+              title="Acoustic Model Error"
+              message={this.state.acousticModelError}
+              show={this.state.acousticModelError}
+              onDismiss={() => this.handleDismiss('acousticModelError')} />
           </Col>
         </Row>
         </Grid>

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { FormGroup, FormControl, Glyphicon, HelpBlock, Panel } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
+import AlertDismissable from '../components/AlertDismissable';
 import './Words.css';
 
 /**
@@ -11,9 +12,12 @@ export default class Words extends Component {
   constructor(props) {
     super(props);
 
+    this.words = [];
+
     this.state = {
       isLoading: false,
       words: [],
+      listError: '',
       error: '',
     };
   }
@@ -22,26 +26,33 @@ export default class Words extends Component {
     this.handleGetList();
   }
 
+  handleDismiss = errorType => {
+    this.setState({ [errorType]: '' });
+  }
+
   handleGetList = async () => {
+    this.setState({ listError: '' });
     this.setState({ isLoading: true });
     fetch('/api/words', {
       method: 'GET',
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           let sortedWords = data.words.sort(
             (a, b) => (a.word < b.word) ? -1 : ((a.word > b.word) ? 1 : 0)
           );
           this.setState({ words: sortedWords });
-        });
-      }
-      this.setState({ isLoading: false });
+        }
+        else {
+          this.setState({ listError: JSON.stringify(data, undefined, 2) });
+        }
+        this.setState({ isLoading: false });
+      });
     })
     .catch((err) => {
-      this.setState({ error: err });
-      console.log('Error getting custom word list.', err);
+      this.setState({ listError: err });
       this.setState({ isLoading: false });
     });
   }
@@ -54,7 +65,7 @@ export default class Words extends Component {
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
+      if (response.ok) {
         this.handleGetList();
       }
       else {
@@ -80,7 +91,7 @@ export default class Words extends Component {
       },
     })
     .then((response) => {
-      if (response.status === 200) {
+      if (response.ok) {
         response.json().then((data) => {
           console.log(data);
         });
@@ -110,7 +121,7 @@ export default class Words extends Component {
         <h2>Custom Word List ({this.state.words.length})</h2>
         <p>These are the out-of-vocabulary words extracted from all the submitted corpora.</p>
         { this.state.isLoading && <Glyphicon glyph="refresh" className="tableload" /> }
-        { !this.state.isLoading && this.state.words.length <= 0 &&
+        { !this.state.isLoading && this.state.words.length <= 0 && !this.state.listError &&
           <p><br /><strong>No out-of-vocabulary words</strong></p>
         }
         { !this.state.isLoading && this.state.words.length > 0 &&
@@ -167,6 +178,11 @@ export default class Words extends Component {
               );
           })
         }
+        <AlertDismissable
+          title="Word List Error"
+          message={this.state.listError}
+          show={this.state.listError}
+          onDismiss={() => this.handleDismiss('listError')} />
       </div>
     );
   }
