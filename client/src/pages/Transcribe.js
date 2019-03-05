@@ -26,7 +26,8 @@ export default class Transcribe extends Component {
       filename: null,
       hasTranscribed: false,
       improveAcousticChecked: false,
-      error: '',
+      transcribeError: '',
+      submitError: '',
       fileSettingsOpen: true,
       corpusName: ''
     };
@@ -54,8 +55,11 @@ export default class Transcribe extends Component {
   handleTranscribe = async event => {
     event.preventDefault();
 
+    this.setState({ transcribeError: '' });
     if (this.file && this.file.size > config.MAX_AUDIO_SIZE) {
-      alert(`Please pick a file smaller than ${config.MAX_AUDIO_SIZE/1000000} MB.`);
+      this.setState({
+        transcribeError: `Please pick a file smaller than ${config.MAX_AUDIO_SIZE/1000000} MB.`
+      });
       return;
     }
 
@@ -71,33 +75,43 @@ export default class Transcribe extends Component {
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
-          this.setState({ hasTranscribed: true });
-          this.setState({ content: data.transcription });
+      response.json().then((data) => {
+        if (response.ok) {
+            this.setState({ hasTranscribed: true });
+            this.setState({ content: data.transcription });
+            this.setState({ isTranscribing: false });
+            this.setState({ fileSettingsOpen: false });
+        }
+        else {
+          this.setState({ transcribeError: JSON.stringify(data, undefined, 2) });
           this.setState({ isTranscribing: false });
-          this.setState({ fileSettingsOpen: false });
-        });
-      }
-      else {
-        this.setState({ error: 'Error transcribing. Code: ' + response.status });
-        this.setState({ isTranscribing: false });
-      }
+        }
+      });
     })
     .catch((err) => {
-      console.log('Unable to transcribe: ', err);
+      this.setState({ transcribeError: 'Could not transcribe: ' + err });
       this.setState({ isTranscribing: false });
     });
   }
 
-  handleDismiss = event => {
-    this.setState({ error: '' });
+  handleDismiss = errorType => {
+    this.setState({ [errorType]: '' });
+  }
+
+  validateCorpusName = () => {
+    let invalidChars = /\s|\/|\\/;
+    return (
+      this.state.corpusName.length > 0 &&
+      this.state.corpusName.length <= 128 &&
+      !invalidChars.test(this.state.corpusName)
+    );
   }
 
   handleSubmit = async event => {
     event.preventDefault();
 
     this.setState({ isSubmitting: true });
+    this.setState({ submitError: '' });
 
 
     // Upload corpora.
@@ -110,8 +124,8 @@ export default class Transcribe extends Component {
       },
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           // Corpora uploaded successfully, so upload audio resource if option was selected.
           if (this.state.improveAcousticChecked) {
 
@@ -124,39 +138,38 @@ export default class Transcribe extends Component {
               credentials: 'include',
             })
             .then((response) => {
-              if (response.status === 200) {
-                response.json().then((data) => {
-                  // Redirect to corpora page to see status.
-                  this.props.history.push('/corpora');
-                });
-              }
-              else {
-                this.setState({ error: 'Could not add audio resource. HTTP Status Code: '
-                              + response.status });
-              }
-              this.setState({ isSubmitting: false });
+              response.json().then((data) => {
+                if (response.ok) {
+                    // Redirect to corpora page to see status.
+                    this.props.history.push('/corpora');
+                }
+                else {
+                  this.setState({ submitError: JSON.stringify(data, undefined, 2) });
+                }
+                this.setState({ isSubmitting: false });
+              });
             })
             .catch((err) => {
-              console.log('Could not add audio resource: ', err);
-              this.setState({ error: 'Could not add audio resource: ' + err });
+              this.setState({ submitError: 'Could not add audio: ' + err });
               this.setState({ isSubmitting: false });
             });
           }
+          // User chose not to upload audio.
           else {
             // Redirect to corpora page to see status.
             this.props.history.push('/corpora');
             this.setState({ isSubmitting: false });
           }
-        });
-      }
-      else {
-        this.setState({ error: 'Could not add corpus. HTTP Status Code: ' + response.status });
-        this.setState({ isSubmitting: false });
-      }
+        }
+        // Adding the corpora returned a non-ok response.
+        else {
+          this.setState({ submitError: JSON.stringify(data, undefined, 2) });
+          this.setState({ isSubmitting: false });
+        }
+      });
     })
     .catch((err) => {
-      console.log('Could not add corpus: ', err);
-      this.setState({ error: 'Could not add corpus: ' + err });
+      this.setState({ submitError: 'Could not add corpus: ' + err });
       this.setState({ isSubmitting: false });
     });
   }
@@ -237,9 +250,9 @@ export default class Transcribe extends Component {
               </Form>
               <AlertDismissable
                 title="Transcribe Error"
-                message={this.state.error}
-                show={this.state.error}
-                onDismiss={this.handleDismiss} />
+                message={this.state.transcribeError}
+                show={this.state.transcribeError}
+                onDismiss={() => this.handleDismiss('transcribeError')} />
             </Panel.Body>
           </Panel.Collapse>
         </Panel>
@@ -285,18 +298,26 @@ export default class Transcribe extends Component {
                   placeholder="Enter name"
                   onChange={this.handleChange}
                 />
-                <HelpBlock>Add a name to this corpus to help identify it.</HelpBlock>
+                <HelpBlock>
+                  Add a name to this corpus to help identify it.
+                  The name must be no more than 128 characters with no spaces or slashes.
+                </HelpBlock>
               </FormGroup>
               <LoadButton
                block
                bsStyle="primary"
-               disabled={!this.state.hasTranscribed || this.state.corpusName.length <= 0}
+               disabled={!this.state.hasTranscribed || !this.validateCorpusName()}
                type="button"
                isLoading={this.state.isSubmitting}
                onClick={this.handleSubmit}
                text="Submit"
                loadingText="Submitting…"
               />
+              <AlertDismissable
+                title="Submission Error"
+                message={this.state.submitError}
+                show={this.state.submitError}
+                onDismiss={() => this.handleDismiss('submitError')} />
             </div>
           </Fragment>
         }

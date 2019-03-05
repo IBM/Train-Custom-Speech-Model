@@ -3,6 +3,7 @@ import {
   Button, Table, Glyphicon, FormGroup, FormControl, ControlLabel, HelpBlock, Panel
 } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
+import AlertDismissable from '../components/AlertDismissable';
 import './Audio.css';
 
 /**
@@ -19,7 +20,8 @@ export default class Audio extends Component {
     this.state = {
       isLoading: false,
       audio: [],
-      error: '',
+      uploadError: '',
+      listError: '',
       isDeleting: false,
       isUploading: false,
       fileUploadOpen: false,
@@ -45,10 +47,15 @@ export default class Audio extends Component {
     this.setState({ 'filename': this.file.name });
   }
 
+  handleDismiss = errorType => {
+    this.setState({ [errorType]: '' });
+  }
+
   uploadAudio = event => {
     event.preventDefault();
 
     this.setState({ isUploading: true });
+    this.setState({ uploadError: '' });
     let formData  = new FormData();
     formData.append('audio', this.file);
     formData.append('audioName', this.state.filename);
@@ -58,25 +65,23 @@ export default class Audio extends Component {
       credentials: 'include',
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           // Start polling audio
           this.file = null;
           this.handlePanelToggle();
           this.setState({ 'filename': '' });
           this.handleGetList();
           this.interval = setInterval(this.pollAudio, 3000);
-        });
-      }
-      else {
-        this.setState({ error: 'Could not add audio resource. HTTP Status Code: '
-                      + response.status });
-      }
-      this.setState({ isUploading: false });
+        }
+        else {
+          this.setState({ uploadError: JSON.stringify(data, undefined, 2) });
+        }
+        this.setState({ isUploading: false });
+      });
     })
     .catch((err) => {
-      console.log('Could not add audio resource: ', err);
-      this.setState({ error: 'Could not add audio resource: ' + err });
+      this.setState({ uploadError: 'Could not add audio resource: ' + err });
       this.setState({ isUploading: false });
     });
   }
@@ -109,36 +114,44 @@ export default class Audio extends Component {
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           let sortedAudio = this.sortAudio(data.audio);
           this.setState({ audio: sortedAudio });
           if (!this.checkAudioProcessing()) {
             clearInterval(this.interval);
           }
-        });
-      }
+        }
+        else {
+          this.setState({ listError: JSON.stringify(data, undefined, 2) });
+          this.setState({ isLoading: false });
+          clearInterval(this.interval);
+        }
+      });
     });
   }
 
   handleGetList = async () => {
+    this.setState({ listError: '' });
     this.setState({ isLoading: true });
     fetch('/api/audio', {
       method: 'GET',
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
-        response.json().then((data) => {
+      response.json().then((data) => {
+        if (response.ok) {
           let sortedAudio = this.sortAudio(data.audio);
           this.setState({ audio: sortedAudio });
-        });
-      }
-      this.setState({ isLoading: false });
+        }
+        else {
+          this.setState({ listError: JSON.stringify(data, undefined, 2) });
+        }
+        this.setState({ isLoading: false });
+      });
     })
     .catch((err) => {
-      this.setState({ error: err });
-      console.log('Error getting audio.', err);
+      this.setState({ listError: err });
       this.setState({ isLoading: false });
     });
   }
@@ -150,7 +163,7 @@ export default class Audio extends Component {
       credentials: 'include'
     })
     .then((response) => {
-      if (response.status === 200) {
+      if (response.ok) {
         this.handleGetList();
       }
       else {
@@ -218,12 +231,17 @@ export default class Audio extends Component {
                loadingText="Uploading…"
               />
               </form>
+              <AlertDismissable
+                title="Audio Upload Error"
+                message={this.state.uploadError}
+                show={this.state.uploadError}
+                onDismiss={() => this.handleDismiss('uploadError')} />
             </Panel.Body>
           </Panel.Collapse>
         </Panel>
 
         { this.state.isLoading && <Glyphicon glyph="refresh" className="tableload" /> }
-        { !this.state.isLoading && this.state.audio.length <= 0 &&
+        { !this.state.isLoading && this.state.audio.length <= 0 && !this.state.listError &&
           <p><br /><strong>No audio resources</strong></p>
         }
         { !this.state.isLoading && this.state.audio.length > 0 &&
@@ -271,6 +289,11 @@ export default class Audio extends Component {
             </tbody>
           </Table>
         }
+        <AlertDismissable
+          title="Audio List Error"
+          message={this.state.listError}
+          show={this.state.listError}
+          onDismiss={() => this.handleDismiss('listError')} />
       </div>
     );
   }

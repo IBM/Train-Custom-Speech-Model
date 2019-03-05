@@ -41,7 +41,7 @@ export default class Login extends Component {
       },
     })
     .then((response) => {
-      if (response.status === 200) {
+      if (response.ok) {
         response.json().then((data) => {
           localStorage.setItem('username', data.user.username);
           localStorage.setItem('customLanguageModel', data.user.langModel);

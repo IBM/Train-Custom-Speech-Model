@@ -22,7 +22,7 @@ class App extends Component {
       credentials: 'include',
     })
       .then((response) => {
-        if (response.status === 200) {
+        if (response.ok) {
           this.userHasAuthenticated(true);
           response.json().then((data) => {
             localStorage.setItem('username', data.user.username);
@@ -47,7 +47,7 @@ class App extends Component {
       credentials: 'include',
     })
       .then((response) => {
-        if (response.status === 200) {
+        if (response.ok) {
           this.userHasAuthenticated(false);
           localStorage.clear();
           const { history } = this.props;
