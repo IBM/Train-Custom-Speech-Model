@@ -17,11 +17,11 @@ When the reader has completed this code pattern, they will understand how to:
 
 ## Flow
 
-1. The user downloads the custom data set and prepares the audio and text data for training.
-1. The user sets up access to the `Watson Speech to Text` service by configuring the credentials.
-1. The user uses the provided application GUI or command line to run training using the batch of data.
-1. The user interactively tests the new custom Speech model by speaking phrases to the computer microphone and verify the text transcription returned from the model.
-1. If the text transcription is not correct, the user can make corrections and resubmit the updated data for training.
+1. The user downloads the custom medical dictation data set from [ezDI](https://www.ezdi.com) and prepares the audio and text data for training.
+1. The user interacts with the Watson Speech to Text service via the provided application UI or by executing command line Python scripts.
+1. The user requests the custom data be used to create and train a language and acoustic Watson Speech to Text model.
+1. The user interactively tests the new custom model by submitting audio files and verifying the text transcription returned from the model.
+1. If the text transcription is not correct, the user can make corrections and resubmit the updated data for additional training.
 1. Several users can work on the same custom model at the same time.
 
 ## Included components
@@ -272,7 +272,7 @@ If using the command line, enter the following:
 python ../cmd/transcribe.py <my_dictation.wav>
 ```
 
-Similarly to the application, you can set or unset the environment variables `LANGUAGE_ID` and `ACOUSTIC_ID` to select any combination of base or custom model for language and acoustic.  If the corresponding variable is unset, the base model will be used.  The transcription will be displayed on the terminal as well as written to a file with the same name as the audio file but with the file extension `.transcript`.
+Similarly to the application, you can set or unset the environment variables `LANGUAGE_ID` and `ACOUSTIC_ID` to select any combination of base or custom model for language and acoustic. If the corresponding variable is unset, the base model will be used. The transcription will be displayed on the terminal as well as written to a file with the same name as the audio file but with the file extension `.transcript`.
 
 ## 7. Correct the transcription
 
@@ -288,7 +288,9 @@ Enter a corpus name, and hit `Submit`.
 
 The language and acoustic models will be re-trained with the new files.
 
-If using the command line, you can edit the transcription output file directly, then add the corrected text as a new corpus and the audio files as new audio sources.  It would be more efficient to aggregate many corrected text and audio clips to train.
+If using the command line, you can directly edit the transcription output file generated in the previous step. You can then add the corrected text as a new corpus, and add the audio file as a new audio source.
+
+> Note: If correcting multiple transcriptions, it will be more efficient to aggregate the corrected text files and audio clips before re-training the models. (See [Step #4](#4-download-and-prepare-the-data) for examples on how to aggregate the files, and [Step #5](#5-train-the-models) for how to re-train the models using the command line)
 
 # Sample output
 
@@ -312,9 +314,7 @@ If using the command line, you can edit the transcription output file directly, 
 
 # Troubleshooting
 
-* Error: Please set your username in the environment variable USERNAME.
-If you use IAM service credentials, set USERNAME set to the string "apikey"
-and set PASSWORD to the value of your IAM API key.
+* Error: Please set your username in the environment variable USERNAME. If you use IAM service credentials, set USERNAME set to the string "apikey" and set PASSWORD to the value of your IAM API key.
 
   > If you choose to use the command line, make sure you set up your environemnt variables.
 
