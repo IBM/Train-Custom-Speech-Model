@@ -2,10 +2,9 @@ language: node_js
 node_js:
   - "8"
 before_script:
-  - cd client
-  - npm install
+  - npm run build
 script:
-    - npm run lint
+  - npm run lint
 cache:
   directories:
     - node_modules
