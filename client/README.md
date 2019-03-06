@@ -1,4 +1,30 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This client was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Run React App with Express API Server
+
+Since this React app relies on the Express API backend server, it is best to run the following from
+the project's root directory (one directory up):
+
+```bash
+npm run dev
+```
+
+This will start both the API server and the React app frontend.
+
+## Project Structure
+
+All handled routes are listed in `src/Routers.js`.
+Each individual route has its own JavaScript and CSS file in the `src/pages` directory.
+Reusable components are stored in the `src/components` directory. These are often imported
+and used by the page scripts.
+
+Some basic config options are also listed in `src/config.js`. Currently the only two config
+options are:
+
+  * `MAX_AUDIO_SIZE`: The maximum size of audio files that users can upload for transcription.
+  * `BASE_STT_MODEL`: The base model the custom models are built using. This option is used on
+    the Transcribe page for users choosing not to use their customized models.
+
 
 ## Available Scripts
 
