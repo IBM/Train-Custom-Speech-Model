@@ -145,9 +145,6 @@ The application will require a local login. The local user accounts are defined 
 Install and start the application by running the following commands in the root directory:
 
 ```bash
-cd client
-npm install
-cd ..
 npm install
 npm run dev
 ```
