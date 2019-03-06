@@ -12,12 +12,13 @@ import {User, getCfenv} from './util';
 import * as crypto from 'crypto';
 import * as passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import expressValidator = require('express-validator');
+import * as expressValidator from 'express-validator';
+import * as bunyanFactory from 'express-bunyan-logger';
 
  /**
- * Routes
- */
-import apiRouter from './routes/api';
+  * Routes
+  */
+import {router} from './routes/api';
 
 /**
  * API keys and Passport configuration.
@@ -38,16 +39,11 @@ class App {
     initPassport();
     this.express.set('port', process.env.PORT || 5000);
     this.express.set('stt_service', getCfenv());
-    this.express.use(require('express-bunyan-logger')({
-      name: 'logger',
+    this.express.use(bunyanFactory({
       excludes: ['req', 'res',
         'req-headers', 'res-headers',
         'response-hrtime', 'user-agent'],
-      obfuscate: ['body.password'],
-      streams: [{
-          level: 'info',
-          stream: process.stdout
-      }]
+      obfuscate: ['body.password']
   }));
     this.express.use(compression());
     this.express.use(expressValidator());
@@ -67,7 +63,7 @@ class App {
    * Primary app routes.
    */
   private routes(): void {
-    this.express.use('/api', apiRouter);
+    this.express.use('/api', router);
   }
 
   private launchConf() {
@@ -90,15 +86,15 @@ function initPassport() {
   * Sign in using Username and Password.
   */
 
-  let users = JSON.parse(fs.readFileSync(
+  const users = JSON.parse(fs.readFileSync(
     path.join(__dirname, '..', 'model', 'user.json')).toString());
 
-  passport.serializeUser<any, any>((user: User, done) => {
+  passport.serializeUser<User, string>((user: User, done) => {
     done(undefined, user.username);
   });
 
-  passport.deserializeUser((username: string, done) => {
-    done(undefined, Object.assign( {username: username}, users[username]));
+  passport.deserializeUser<User, string>((username: string, done) => {
+    done(undefined, Object.assign( {username}, users[username]));
   });
 
   passport.use(new LocalStrategy(
@@ -107,7 +103,7 @@ function initPassport() {
       if (users[username]) {
         if (users[username].password === password) {
           return done(undefined,
-            Object.assign({username: username}, users[username]));
+            Object.assign({username}, users[username]));
         }
         return done(undefined,
                     false,
@@ -125,12 +121,12 @@ function initPassport() {
  */
 function isAuthenticated (req: express.Request, res: express.Response,
     next: express.NextFunction) {
-  if (req.isAuthenticated() || req.path === "/api/login") {
+  if (req.isAuthenticated() || req.path === '/api/login') {
     return next();
   }
   return res.status(401).json({
-    error: "Not authorized to view this resource."
+    error: 'Not authorized to view this resource.'
   });
-};
+}
 
-export default new App().express;
+export let server = (new App()).express;

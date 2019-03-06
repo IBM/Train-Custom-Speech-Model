@@ -77,5 +77,4 @@ class Api {
   }
 }
 
-const apiRoutes = new Api();
-export default apiRoutes.router;
+export let router = (new Api()).router;
