@@ -4,14 +4,14 @@
   "description": "Train a Watson Speech model for a specialized domain to improve the speech to text performance",
   "main": "npm run-script start",
   "scripts": {
-    "start": "npm run build && npm run serve",
+    "start": "npm run serve",
     "build": "npm run build-client && tsc",
-    "build-client": "cd client && npm install",
+    "build-client": "cd client && npm install && npm run build",
     "serve": "node dist/server.js | bunyan",
     "test": "echo \"Error: no test specified\" && exit 1",
     "client": "cd client && npm run start",
     "server": "node dist/server.js",
-    "dev": "concurrently --kill-others-on-fail \"npm run start\" \"npm run client\"",
+    "dev": "npm run build && concurrently --kill-others-on-fail \"npm run start\" \"npm run client\"",
     "lint": "tslint --project tsconfig.json -c tslint.json 'server/**/*.ts' && npm run lint-client",
     "lint-client": "cd client && npm run lint"
   },
