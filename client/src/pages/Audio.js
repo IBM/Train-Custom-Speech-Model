@@ -6,6 +6,7 @@ import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
 import config from '../config';
 import './Audio.css';
+import { handleFetchNonOK } from './util';
 
 /**
  * Class to handle the rendering of the Audio page where a list of all audio resources
@@ -65,24 +66,21 @@ export default class Audio extends Component {
       body: formData,
       credentials: 'include',
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          // Start polling audio
-          this.file = null;
-          this.handlePanelToggle();
-          this.setState({ 'filename': '' });
-          this.handleGetList();
-          this.interval = setInterval(this.pollAudio, 3000);
-        }
-        else {
-          this.setState({ uploadError: JSON.stringify(data, undefined, 2) });
-        }
+        // Start polling audio
+        this.file = null;
+        this.handlePanelToggle();
+        this.setState({ 'filename': '' });
+        this.handleGetList();
+        this.interval = setInterval(this.pollAudio, 3000);
         this.setState({ isUploading: false });
       });
     })
     .catch((err) => {
-      this.setState({ uploadError: 'Could not add audio resource: ' + err });
+      this.setState({ uploadError:
+        `Could not add audio resource: ${err.message}` });
       this.setState({ isUploading: false });
     });
   }
@@ -114,21 +112,20 @@ export default class Audio extends Component {
       method: 'GET',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          let sortedAudio = this.sortAudio(data.audio);
-          this.setState({ audio: sortedAudio });
-          if (!this.checkAudioProcessing()) {
-            clearInterval(this.interval);
-          }
-        }
-        else {
-          this.setState({ listError: JSON.stringify(data, undefined, 2) });
-          this.setState({ isLoading: false });
+        let sortedAudio = this.sortAudio(data.audio);
+        this.setState({ audio: sortedAudio });
+        if (!this.checkAudioProcessing()) {
           clearInterval(this.interval);
         }
       });
+    })
+    .catch((err) => {
+      this.setState({ listError: err.message });
+      this.setState({ isLoading: false });
+      clearInterval(this.interval);
     });
   }
 
@@ -139,20 +136,16 @@ export default class Audio extends Component {
       method: 'GET',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          let sortedAudio = this.sortAudio(data.audio);
-          this.setState({ audio: sortedAudio });
-        }
-        else {
-          this.setState({ listError: JSON.stringify(data, undefined, 2) });
-        }
+        let sortedAudio = this.sortAudio(data.audio);
+        this.setState({ audio: sortedAudio });
         this.setState({ isLoading: false });
       });
     })
     .catch((err) => {
-      this.setState({ listError: err });
+      this.setState({ listError: err.message });
       this.setState({ isLoading: false });
     });
   }
@@ -163,17 +156,13 @@ export default class Audio extends Component {
       method: 'DELETE',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
-      if (response.ok) {
-        this.handleGetList();
-      }
-      else {
-        this.setState({ error: 'There was a problem deleting the audio resource.' });
-      }
+      this.handleGetList();
       this.setState({ isDeleting: false });
     })
     .catch((err) => {
-      this.setState({ error: err });
+      this.setState({ error: err.message });
       this.setState({ isDeleting: false });
     });
   }

@@ -7,6 +7,7 @@ import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
 import config from '../config';
 import './Transcribe.css';
+import { handleFetchNonOK } from './util';
 
 /**
  * Class to handle the rendering of the Transcribe page where users can submit audio files to have
@@ -58,7 +59,8 @@ export default class Transcribe extends Component {
     this.setState({ transcribeError: '' });
     if (this.file && this.file.size > config.MAX_AUDIO_SIZE) {
       this.setState({
-        transcribeError: `Please pick a file smaller than ${config.MAX_AUDIO_SIZE/1000000} MB.`
+        transcribeError:
+          `Please pick a file smaller than ${config.MAX_AUDIO_SIZE/1000000} MB.`
       });
       return;
     }
@@ -74,22 +76,17 @@ export default class Transcribe extends Component {
       body: formData,
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-            this.setState({ hasTranscribed: true });
-            this.setState({ content: data.transcription });
-            this.setState({ isTranscribing: false });
-            this.setState({ fileSettingsOpen: false });
-        }
-        else {
-          this.setState({ transcribeError: JSON.stringify(data, undefined, 2) });
-          this.setState({ isTranscribing: false });
-        }
+        this.setState({ hasTranscribed: true });
+        this.setState({ content: data.transcription });
+        this.setState({ isTranscribing: false });
+        this.setState({ fileSettingsOpen: false });
       });
     })
     .catch((err) => {
-      this.setState({ transcribeError: 'Could not transcribe: ' + err });
+      this.setState({ transcribeError: `Could not transcribe: ${err.message}`});
       this.setState({ isTranscribing: false });
     });
   }
@@ -117,59 +114,52 @@ export default class Transcribe extends Component {
     // Upload corpora.
     fetch(`${config.API_ENDPOINT}/corpora`, {
       method: 'POST',
-      body: JSON.stringify({'corpusName': this.state.corpusName, 'corpus': this.state.content}),
+      body: JSON.stringify({'corpusName': this.state.corpusName,
+                            'corpus': this.state.content}),
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          // Corpora uploaded successfully, so upload audio resource if option was selected.
-          if (this.state.improveAcousticChecked) {
+        // Corpora uploaded successfully, so upload audio resource if option
+        // was selected.
+        if (this.state.improveAcousticChecked) {
 
-            let formData  = new FormData();
-            formData.append('audio', this.file);
-            formData.append('audioName', this.state.corpusName + '-audio');
-            fetch(`${config.API_ENDPOINT}/audio`, {
-              method: 'POST',
-              body: formData,
-              credentials: 'include',
-            })
-            .then((response) => {
-              response.json().then((data) => {
-                if (response.ok) {
-                    // Redirect to corpora page to see status.
-                    this.props.history.push('/corpora');
-                }
-                else {
-                  this.setState({ submitError: JSON.stringify(data, undefined, 2) });
-                }
-                this.setState({ isSubmitting: false });
-              });
-            })
-            .catch((err) => {
-              this.setState({ submitError: 'Could not add audio: ' + err });
+          let formData  = new FormData();
+          formData.append('audio', this.file);
+          formData.append('audioName', this.state.corpusName + '-audio');
+          fetch(`${config.API_ENDPOINT}/audio`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+          })
+          .then(handleFetchNonOK)
+          .then((response) => {
+            response.json().then((data) => {
+              // Redirect to corpora page to see status.
+              this.props.history.push('/corpora');
               this.setState({ isSubmitting: false });
             });
-          }
-          // User chose not to upload audio.
-          else {
-            // Redirect to corpora page to see status.
-            this.props.history.push('/corpora');
+          })
+          .catch((err) => {
+            this.setState({ submitError:
+              `Could not add audio: ${err.message}`});
             this.setState({ isSubmitting: false });
-          }
+          });
         }
-        // Adding the corpora returned a non-ok response.
+        // User chose not to upload audio.
         else {
-          this.setState({ submitError: JSON.stringify(data, undefined, 2) });
+          // Redirect to corpora page to see status.
+          this.props.history.push('/corpora');
           this.setState({ isSubmitting: false });
         }
       });
     })
     .catch((err) => {
-      this.setState({ submitError: 'Could not add corpus: ' + err });
+      this.setState({ submitError: `Could not add corpus: ${err.message}`});
       this.setState({ isSubmitting: false });
     });
   }
