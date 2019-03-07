@@ -49,7 +49,7 @@ async function postTranscribe (req: Request, res: Response) {
 
   const watsonSTT: WatsonSTT = req.watsonSTT;
 
-  if (req.body.model !== 'en-US_NarrowbandModel') {
+  if (req.body.languageModel !== 'en-US_NarrowbandModel') {
     recognizeParams.language_customization_id = watsonSTT.langModelId;
   }
 
