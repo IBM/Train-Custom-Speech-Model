@@ -21,6 +21,7 @@ and used by the page scripts.
 Some basic config options are also listed in `src/config.js`. Currently the only two config
 options are:
 
+  * `API_ENDPOINT`: The URL endpoint of the server hosting the API.
   * `MAX_AUDIO_SIZE`: The maximum size of audio files that users can upload for transcription.
   * `BASE_STT_MODEL`: The base model the custom models are built using. This option is used on
     the Transcribe page for users choosing not to use their customized models.

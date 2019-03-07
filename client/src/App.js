@@ -3,6 +3,7 @@ import { Link, withRouter } from 'react-router-dom';
 import { Nav, Navbar, NavItem } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import Routes from './Routes';
+import config from './config';
 import './App.css';
 
 
@@ -17,7 +18,7 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    fetch('/api/user', {
+    fetch(`${config.API_ENDPOINT}/user`, {
       method: 'GET',
       credentials: 'include',
     })
@@ -42,7 +43,7 @@ class App extends Component {
   }
 
   handleLogout = (event) => {
-    fetch('/api/logout', {
+    fetch(`${config.API_ENDPOINT}/logout`, {
       method: 'POST',
       credentials: 'include',
     })

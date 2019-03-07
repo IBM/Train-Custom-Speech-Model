@@ -4,6 +4,7 @@ import {
 } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
+import config from '../config';
 import './Corpora.css';
 
 /**
@@ -57,7 +58,7 @@ export default class Corpora extends Component {
     event.preventDefault();
     this.setState({ isUploading: true });
     this.setState({ uploadError: '' });
-    fetch('/api/corpora', {
+    fetch(`${config.API_ENDPOINT}/corpora`, {
       method: 'POST',
       body: JSON.stringify({'corpusName': this.state.filename, 'corpus': this.fileContents}),
       credentials: 'include',
@@ -117,7 +118,7 @@ export default class Corpora extends Component {
 
 
   pollCorpora = async () => {
-    fetch('/api/corpora', {
+    fetch(`${config.API_ENDPOINT}/corpora`, {
       method: 'GET',
       credentials: 'include'
     })
@@ -142,7 +143,7 @@ export default class Corpora extends Component {
   handleGetList = async () => {
     this.setState({ listError: '' });
     this.setState({ isLoading: true });
-    fetch('/api/corpora', {
+    fetch(`${config.API_ENDPOINT}/corpora`, {
       method: 'GET',
       credentials: 'include'
     })
@@ -166,7 +167,7 @@ export default class Corpora extends Component {
 
   handleDelete = async corpusName => {
     this.setState({ isDeleting: true });
-    fetch('/api/corpora/' + corpusName, {
+    fetch(`${config.API_ENDPOINT}/corpora/` + corpusName, {
       method: 'DELETE',
       credentials: 'include'
     })
