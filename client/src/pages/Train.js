@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Grid, Row, Col, Well, Glyphicon } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
+import config from '../config';
 import './Train.css';
 
 /**
@@ -42,7 +43,7 @@ export default class Train extends Component {
     event.preventDefault();
     this.setState({ isLanguageSubmitting: true });
     this.setState({ languageModelError: '' });
-    fetch('/api/train', {
+    fetch(`${config.API_ENDPOINT}/train`, {
       method: 'POST',
       credentials: 'include',
     })
@@ -66,7 +67,7 @@ export default class Train extends Component {
   trainAcousticModel = async event => {
     event.preventDefault();
     this.setState({ isAcousticSubmitting: true });
-    fetch('/api/train-acoustic', {
+    fetch(`${config.API_ENDPOINT}/train-acoustic`, {
       method: 'POST',
       credentials: 'include',
     })
@@ -142,7 +143,7 @@ export default class Train extends Component {
 
   getStatusLanguageModel = async (poll = false) => {
     if (!poll) this.setState({ isLanguageStatusLoading: true });
-    fetch('/api/model', {
+    fetch(`${config.API_ENDPOINT}/model`, {
       method: 'GET',
       credentials: 'include'
     })
@@ -174,7 +175,7 @@ export default class Train extends Component {
 
   getStatusAcousticModel = async (poll = false) => {
     if (!poll) this.setState({ isAcousticStatusLoading: true });
-    fetch('/api/acoustic-model', {
+    fetch(`${config.API_ENDPOINT}/acoustic-model`, {
       method: 'GET',
       credentials: 'include'
     })

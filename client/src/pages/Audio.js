@@ -4,6 +4,7 @@ import {
 } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
+import config from '../config';
 import './Audio.css';
 
 /**
@@ -59,7 +60,7 @@ export default class Audio extends Component {
     let formData  = new FormData();
     formData.append('audio', this.file);
     formData.append('audioName', this.state.filename);
-    fetch('/api/audio', {
+    fetch(`${config.API_ENDPOINT}/audio`, {
       method: 'POST',
       body: formData,
       credentials: 'include',
@@ -109,7 +110,7 @@ export default class Audio extends Component {
 
 
   pollAudio = async () => {
-    fetch('/api/audio', {
+    fetch(`${config.API_ENDPOINT}/audio`, {
       method: 'GET',
       credentials: 'include'
     })
@@ -134,7 +135,7 @@ export default class Audio extends Component {
   handleGetList = async () => {
     this.setState({ listError: '' });
     this.setState({ isLoading: true });
-    fetch('/api/audio', {
+    fetch(`${config.API_ENDPOINT}/audio`, {
       method: 'GET',
       credentials: 'include'
     })
@@ -158,7 +159,7 @@ export default class Audio extends Component {
 
   handleDelete = async audioName => {
     this.setState({ isDeleting: true });
-    fetch('/api/audio/' + audioName, {
+    fetch(`${config.API_ENDPOINT}/audio/` + audioName, {
       method: 'DELETE',
       credentials: 'include'
     })

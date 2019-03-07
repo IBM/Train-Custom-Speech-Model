@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { FormGroup, FormControl, Glyphicon, HelpBlock, Panel } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
+import config from '../config';
 import './Words.css';
 
 /**
@@ -33,7 +34,7 @@ export default class Words extends Component {
   handleGetList = async () => {
     this.setState({ listError: '' });
     this.setState({ isLoading: true });
-    fetch('/api/words', {
+    fetch(`${config.API_ENDPOINT}/words`, {
       method: 'GET',
       credentials: 'include'
     })
@@ -60,7 +61,7 @@ export default class Words extends Component {
   handleDelete = async wordIndex => {
     let word = this.state.words[wordIndex].word;
     this.setState({ isLoading: true });
-    fetch('/api/words/' + word.replace(' ', '-'), {
+    fetch(`${config.API_ENDPOINT}/words/` + word.replace(' ', '-'), {
       method: 'DELETE',
       credentials: 'include'
     })
@@ -82,7 +83,7 @@ export default class Words extends Component {
   handleAdd = async wordIndex => {
     let loadingKey = 'isLoading' + wordIndex;
     this.setState({ [loadingKey]: true });
-    fetch('/api/words', {
+    fetch(`${config.API_ENDPOINT}/words`, {
       method: 'POST',
       body: JSON.stringify(this.state.words[wordIndex]),
       credentials: 'include',

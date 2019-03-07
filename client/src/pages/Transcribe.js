@@ -69,7 +69,7 @@ export default class Transcribe extends Component {
     formData.append('languageModel', this.languageModelType.value);
     formData.append('acousticModel', this.acousticModelType.value);
 
-    fetch('/api/transcribe', {
+    fetch(`${config.API_ENDPOINT}/transcribe`, {
       method: 'POST',
       body: formData,
       credentials: 'include'
@@ -115,7 +115,7 @@ export default class Transcribe extends Component {
 
 
     // Upload corpora.
-    fetch('/api/corpora', {
+    fetch(`${config.API_ENDPOINT}/corpora`, {
       method: 'POST',
       body: JSON.stringify({'corpusName': this.state.corpusName, 'corpus': this.state.content}),
       credentials: 'include',
@@ -132,7 +132,7 @@ export default class Transcribe extends Component {
             let formData  = new FormData();
             formData.append('audio', this.file);
             formData.append('audioName', this.state.corpusName + '-audio');
-            fetch('/api/audio', {
+            fetch(`${config.API_ENDPOINT}/audio`, {
               method: 'POST',
               body: formData,
               credentials: 'include',

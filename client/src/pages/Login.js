@@ -3,6 +3,7 @@ import {
   Button, FormGroup, FormControl, ControlLabel, InputGroup, Glyphicon
 } from 'react-bootstrap';
 import AlertDismissable from '../components/AlertDismissable';
+import config from '../config';
 import './Login.css';
 
 /**
@@ -32,7 +33,7 @@ export default class Login extends Component {
 
   handleSubmit = async event => {
     event.preventDefault();
-    fetch('/api/login', {
+    fetch(`${config.API_ENDPOINT}/login`, {
       method: 'POST',
       body: JSON.stringify({'username': this.state.username, 'password': this.state.password}),
       credentials: 'include',

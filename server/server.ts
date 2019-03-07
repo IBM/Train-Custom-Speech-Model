@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as bodyParser from 'body-parser';
 import * as compression from 'compression';  // compresses requests
+import * as cors from 'cors';
 import * as express from 'express';
 import * as session from 'express-session';
 import {User, getCfenv} from './util';
@@ -39,6 +40,9 @@ class App {
     initPassport();
     this.express.set('port', process.env.PORT || 5000);
     this.express.set('stt_service', getCfenv());
+    this.express.use(cors(
+      { origin: 'http://localhost:3000', credentials: true }
+    ));
     this.express.use(bunyanFactory({
       excludes: ['req', 'res',
         'req-headers', 'res-headers',
@@ -77,7 +81,8 @@ class App {
       in %s mode'), this.express.get('port'), this.express.get('env'));
       // tslint:disable-next-line:no-console
       console.log('  Press CTRL-C to stop');
-    });
+    })
+    .setTimeout(600000);
   }
 }
 
