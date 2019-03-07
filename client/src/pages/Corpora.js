@@ -66,6 +66,13 @@ export default class Corpora extends Component {
       },
     })
     .then((response) => {
+      if (!response.ok) {
+        this.setState({ uploadError:
+          `Could not add corpus: ${response.statusText}`});
+        this.setState({ isUploading: false });
+        return;
+      }
+
       response.json().then((data) => {
         if (response.ok) {
           // Start polling corpora
@@ -82,7 +89,7 @@ export default class Corpora extends Component {
       });
     })
     .catch((err) => {
-      this.setState({ uploadError: 'Could not add corpus: ' + err });
+      this.setState({ uploadError: `Could not add corpus: ${err}` });
       this.setState({ isUploading: false });
     });
   }

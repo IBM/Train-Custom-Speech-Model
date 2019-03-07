@@ -52,7 +52,7 @@ class App {
       saveUninitialized: true,
       secret: crypto.randomBytes(64).toString('hex'),
     }));
-    this.express.use(bodyParser.json());
+    this.express.use(bodyParser.json({limit: '2mb'}));
     this.express.use(bodyParser.urlencoded({ extended: true }));
     this.express.use(passport.initialize());
     this.express.use(passport.session());
