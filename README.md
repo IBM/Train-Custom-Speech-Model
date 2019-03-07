@@ -100,7 +100,7 @@ Also, for the purpose of training, we will need to combine all text files into a
 To remove the unwanted text strings and to combine all of the text files into a single `corpus` file, perform the following command:
 
 ```bash
-sed -f fixup.sed Documents/*.txt > corpus-1.input
+sed -f fixup.sed Documents/*.txt > corpus-1.txt
 ```
 
 For the audio files, we can archive them as zip or tar files. Since the `Watson Speech to Text` API has a limit of 100MB per archive file, we will need to split up the audio files into 3 zip files. We will also set aside the first 5 audio files for testing.
@@ -201,7 +201,7 @@ export LANGUAGE_ID=<id_for_your_model>
 The custom model will stay in the *"pending"* state until a corpus of text is added. Add the medical transcription file we created in an earlier step.
 
 ```bash
-python ../cmd/add_corpus.py corpus-1.input
+python ../cmd/add_corpus.py corpus-1.txt
 python ../cmd/list_corpus.py
 ```
 
