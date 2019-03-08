@@ -83,7 +83,7 @@ The transcription files stored in the `Documents` directory will be in **rtf** f
 
 > Note: Ensure that you have Python 2.7 installed.
 
-```python
+```bash
 pip install pyth
 for name in `ls Documents/*.rtf`;
 do
