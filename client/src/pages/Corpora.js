@@ -6,6 +6,7 @@ import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
 import config from '../config';
 import './Corpora.css';
+import { handleFetchNonOK } from './util';
 
 /**
  * Class to handle the rendering of the Corpora page where a list of all corpora for the user's
@@ -60,37 +61,27 @@ export default class Corpora extends Component {
     this.setState({ uploadError: '' });
     fetch(`${config.API_ENDPOINT}/corpora`, {
       method: 'POST',
-      body: JSON.stringify({'corpusName': this.state.filename, 'corpus': this.fileContents}),
+      body: JSON.stringify({'corpusName': this.state.filename,
+                            'corpus': this.fileContents}),
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
     })
+    .then(handleFetchNonOK)
     .then((response) => {
-      if (!response.ok) {
-        this.setState({ uploadError:
-          `Could not add corpus: ${response.statusText}`});
-        this.setState({ isUploading: false });
-        return;
-      }
-
       response.json().then((data) => {
-        if (response.ok) {
-          // Start polling corpora
-          this.fileContents = '';
-          this.handlePanelToggle();
-          this.setState({ 'filename': '' });
-          this.handleGetList();
-          this.interval = setInterval(this.pollCorpora, 3000);
-        }
-        else {
-          this.setState({ uploadError: JSON.stringify(data, undefined, 2) });
-        }
+        // Start polling corpora
+        this.fileContents = '';
+        this.handlePanelToggle();
+        this.setState({ 'filename': '' });
+        this.handleGetList();
+        this.interval = setInterval(this.pollCorpora, 3000);
         this.setState({ isUploading: false });
       });
     })
     .catch((err) => {
-      this.setState({ uploadError: `Could not add corpus: ${err}` });
+      this.setState({ uploadError: `Could not add corpus: ${err.message}` });
       this.setState({ isUploading: false });
     });
   }
@@ -103,8 +94,9 @@ export default class Corpora extends Component {
   }
 
   /**
-   * Sort the given list of corpora, first by status, then by name. We sort by status first
-   * to make sure the corpora being processed are listed at the top.
+   * Sort the given list of corpora, first by status, then by name. We sort by
+   * status first to make sure the corpora being processed are listed at the
+   * top.
    */
   sortCorpora = corpora => {
     corpora.sort((a, b) => {
@@ -122,21 +114,20 @@ export default class Corpora extends Component {
       method: 'GET',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          let sortedCorpora = this.sortCorpora(data.corpora);
-          this.setState({ corpora: sortedCorpora });
-          if (!this.checkCorporaProcessing()) {
-            clearInterval(this.interval);
-          }
-        }
-        else {
-          this.setState({ listError: JSON.stringify(data, undefined, 2) });
-          this.setState({ isLoading: false });
+        let sortedCorpora = this.sortCorpora(data.corpora);
+        this.setState({ corpora: sortedCorpora });
+        if (!this.checkCorporaProcessing()) {
           clearInterval(this.interval);
         }
       });
+    })
+    .catch((err) => {
+      this.setState({ listError: err.message });
+      this.setState({ isLoading: false });
+      clearInterval(this.interval);
     });
   }
 
@@ -147,20 +138,16 @@ export default class Corpora extends Component {
       method: 'GET',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          let sortedCorpora = this.sortCorpora(data.corpora);
-          this.setState({ corpora: sortedCorpora });
-        }
-        else {
-          this.setState({ listError: JSON.stringify(data, undefined, 2) });
-        }
+        let sortedCorpora = this.sortCorpora(data.corpora);
+        this.setState({ corpora: sortedCorpora });
         this.setState({ isLoading: false });
       });
     })
     .catch((err) => {
-      this.setState({ listError: err });
+      this.setState({ listError: err.message });
       this.setState({ isLoading: false });
     });
   }
@@ -171,17 +158,13 @@ export default class Corpora extends Component {
       method: 'DELETE',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
-      if (response.ok) {
-        this.handleGetList();
-      }
-      else {
-        this.setState({ error: 'There was a problem deleting the corpus.' });
-      }
+      this.handleGetList();
       this.setState({ isDeleting: false });
     })
     .catch((err) => {
-      this.setState({ error: err });
+      this.setState({ error: err.message });
       this.setState({ isDeleting: false });
     });
   }

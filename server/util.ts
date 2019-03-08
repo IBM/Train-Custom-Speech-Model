@@ -29,8 +29,9 @@ export function getCfenv () {
       'code-pattern-custom-language-model');
 }
 
-interface STTError {
+export interface STTError {
   code?: string;
+  error?: string;
   msg?: string;
 }
 

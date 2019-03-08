@@ -60,6 +60,8 @@ async function postTranscribe (req: Request, res: Response) {
   watsonSTT.speech.recognize(recognizeParams,
     (error: string, results: STTDef.SpeechRecognitionResults) => {
       if (error || !results.results[0]) {
+        req.log.error(
+          `recognize call failed: ${JSON.stringify(error, null, 2)}`);
         return res.status(500).json({
           error: error || results.results[0]
         });
@@ -80,8 +82,9 @@ async function postTranscribe (req: Request, res: Response) {
 async function getModel(req: Request, res: Response) {
   const result = await req.watsonSTT.getLanguageModel();
   if (result[0]) {
+    req.log.error(`can not get model: ${JSON.stringify(result[0], null, 2)}`);
     return res.status(500).json({
-      error: result[0]
+      error: result[0].error || 'can not get model info'
     });
   } else {
     return res.status(200).json({
@@ -93,8 +96,10 @@ async function getModel(req: Request, res: Response) {
 async function getAcousticModel(req: Request, res: Response) {
   const result = await req.watsonSTT.getAcousticModel();
   if (result[0]) {
+    req.log.error(
+      `can not get acosutic model: ${JSON.stringify(result[0], null, 2)}`);
     return res.status(500).json({
-      error: result[0]
+      error: result[0].error || 'can not get acoustic model info'
     });
   } else {
     return res.status(200).json({
@@ -129,8 +134,10 @@ async function postAudio(req: Request, res: Response) {
   const result = await req.watsonSTT.addAudio(params);
 
   if (result[0]) {
+    req.log.error(
+      `failed to add/update audio: ${JSON.stringify(result[0], null, 2)}`);
     return res.status(500).json({
-      error: result[0]
+      error: result[0].error || 'failed to add/update audio'
     });
   } else {
     return res.status(200).json({
@@ -142,8 +149,10 @@ async function postAudio(req: Request, res: Response) {
 async function listAudio(req: Request, res: Response) {
   const audioResources = await req.watsonSTT.listAudio();
   if (audioResources[0]) {
+    req.log.error(
+      `failed to list audio: ${JSON.stringify(audioResources[0], null, 2)}`);
     return res.status(500).json({
-      error: audioResources[0]
+      error: audioResources[0].error || 'failed to list audio'
     });
   } else {
     return res.status(200).json({
@@ -156,8 +165,10 @@ async function deleteAudio(req: Request, res: Response) {
   if (req.params.name) {
     const result = await req.watsonSTT.deleteAudio(req.params.name);
     if (result[0]) {
+      req.log.error(
+        `failed to delete audio: ${JSON.stringify(result[0], null, 2)}`);
       return res.status(500).json({
-        error: result[0]
+        error: result[0].error || 'failed to delete audio'
       });
     } else {
       return res.status(200).json({
@@ -178,8 +189,10 @@ async function postCorpus(req: Request, res: Response) {
     req.body.corpus);
 
   if (result[0]) {
+    req.log.error(
+      `failed to add/update corpus: ${JSON.stringify(result[0], null, 2)}`);
     return res.status(500).json({
-      error: result[0]
+      error: result[0].error || 'failed to add/update corpus'
     });
   } else {
     return res.status(200).json({
@@ -192,8 +205,10 @@ async function deleteCorpus(req: Request, res: Response) {
   if (req.params.name) {
     const result = await req.watsonSTT.deleteCorpus(req.params.name);
     if (result[0]) {
+      req.log.error(
+        `failed to delete corpus: ${JSON.stringify(result[0], null, 2)}`);
       return res.status(500).json({
-        error: result[0]
+        error: result[0].error || 'failed to delete corpus'
       });
     } else {
       return res.status(200).json({
@@ -211,8 +226,10 @@ async function deleteCorpus(req: Request, res: Response) {
 async function getCorpora(req: Request, res: Response) {
   const corpora = await req.watsonSTT.getCorpora();
   if (corpora[0]) {
+    req.log.error(
+      `failed to get corpora: ${JSON.stringify(corpora[0], null , 2)}`);
     return res.status(500).json({
-      error: corpora[0]
+      error: corpora[0].error || 'failed to get corpora'
     });
   } else {
     return res.status(200).json({
@@ -224,8 +241,9 @@ async function getCorpora(req: Request, res: Response) {
 async function getWords(req: Request, res: Response) {
   const words = await req.watsonSTT.listWords();
   if (words[0]) {
+    req.log.error(`failed to get words: ${JSON.stringify(words[0], null, 2)}`);
     return res.status(500).json({
-      error: words[0]
+      error: words[0].error || 'failed to get words'
     });
   } else {
     return res.status(200).json({
@@ -239,8 +257,9 @@ async function addWord(req: Request, res: Response) {
     req.body.word, req.body.sounds_like, req.body.display_as
   );
   if (result[0]) {
+    req.log.error(`failed to add word: ${JSON.stringify(result[0], null, 2)}`);
     return res.status(500).json({
-      error: result[0]
+      error: result[0].error || 'failed to add the specified word'
     });
   } else {
     return res.status(200).json({
@@ -254,8 +273,10 @@ async function deleteWord(req: Request, res: Response) {
   if (req.params.name) {
     const result = await req.watsonSTT.deleteWord(req.params.name);
     if (result[0]) {
+      req.log.error(
+        `failed to delete word: ${JSON.stringify(result[0], null, 2)}`);
       return res.status(500).json({
-        error: result[0]
+        error: result[0].error || 'failed to delete the specified word'
       });
     } else {
       return res.status(200).json({
@@ -273,8 +294,10 @@ async function deleteWord(req: Request, res: Response) {
 async function trainModel(req: Request, res: Response) {
   const result = await req.watsonSTT.trainModel();
   if (result[0]) {
+    req.log.error(
+      `failed to train the model: ${JSON.stringify(result[0], null, 2)}`);
     return res.status(500).json({
-      error: result[0]
+      error: result[0].error || 'failed to train the model'
     });
   } else {
     return res.status(200).json({
@@ -288,8 +311,10 @@ async function trainAcousticModel(req: Request, res: Response) {
   // training.
   const result = await req.watsonSTT.trainAcousticModel();
   if (result[0]) {
+    req.log.error(
+      `failed to train acoustic model: ${JSON.stringify(result[0], null, 2)}`);
     return res.status(500).json({
-      error: result[0]
+      error: result[0].error || 'failed to train acoustic model'
     });
   } else {
     return res.status(200).json({

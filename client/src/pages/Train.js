@@ -4,10 +4,11 @@ import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
 import config from '../config';
 import './Train.css';
+import { handleFetchNonOK } from './util';
 
 /**
- * Class to handle the rendering of the Train page where users can initialize the training for
- * their custom models.
+ * Class to handle the rendering of the Train page where users can initialize
+ * the training for their custom models.
  * @extends React.Component
  */
 export default class Train extends Component {
@@ -47,19 +48,16 @@ export default class Train extends Component {
       method: 'POST',
       credentials: 'include',
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          this.getStatusLanguageModel();
-        }
-        else {
-          this.setState({ languageModelError: JSON.stringify(data, undefined, 2) });
-        }
+        this.getStatusLanguageModel();
         this.setState({ isLanguageSubmitting: false });
       });
     })
     .catch((err) => {
-      this.setState({ languageModelError: 'Error initializing the training: ' + err });
+      this.setState({ languageModelError:
+        `Error initializing the training: ${err.message}`});
       this.setState({ isLanguageSubmitting: false });
     });
   }
@@ -71,26 +69,24 @@ export default class Train extends Component {
       method: 'POST',
       credentials: 'include',
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          this.getStatusAcousticModel();
-        }
-        else {
-          this.setState({ acousticModelError: JSON.stringify(data, undefined, 2) });
-        }
+        this.getStatusAcousticModel();
         this.setState({ isAcousticSubmitting: false });
       });
     })
     .catch((err) => {
-      this.setState({ acousticModelError: 'Error initializing the training: ' + err });
+      this.setState({ acousticModelError:
+        `Error initializing the training: ${err.message}`});
       this.setState({ isAcousticSubmitting: false });
     });
   }
 
 
   /**
-   * Check if model is in a state that needs continuous polling to check for updates.
+   * Check if model is in a state that needs continuous polling to check for
+   * updates.
    */
   checkModelStatusDone = status => {
     let nonPollStatuses = ['ready', 'available', 'failed'];
@@ -99,8 +95,8 @@ export default class Train extends Component {
   }
 
   /**
-   * This function will check if the model is in a state from which you can kick off a training
-   * session from (i.e. not updating, pending, or training).
+   * This function will check if the model is in a state from which you can kick
+   * off a training session from (i.e. not updating, pending, or training).
    */
   checkModelTrainable = data => {
     if (!data) {
@@ -113,7 +109,8 @@ export default class Train extends Component {
   }
 
   /**
-   * This function will give the appropriate CSS class to color the given status.
+   * This function will give the appropriate CSS class to color the given
+   * status.
    */
   getStatusColor = status => {
     if (status === 'ready') {
@@ -147,28 +144,26 @@ export default class Train extends Component {
       method: 'GET',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          this.setState({ languageModelData: data.data });
-          let isNotActive = this.checkModelStatusDone(data.data.status);
-          // If polling and if the model is no longer in an active state, stop polling.
-          if (isNotActive && poll) {
-            clearInterval(this.interval);
-          }
-          // If it is in an active state, initiate the polling.
-          else if (!isNotActive && !poll) {
-            this.interval = setInterval(this.pollLanguageModelStatus, 5000);
-          }
+        this.setState({ languageModelData: data.data });
+        let isNotActive = this.checkModelStatusDone(data.data.status);
+        // If polling and if the model is no longer in an active state, stop
+        // polling.
+        if (isNotActive && poll) {
+          clearInterval(this.interval);
         }
-        else {
-          this.setState({ languageModelError: JSON.stringify(data, undefined, 2) });
+        // If it is in an active state, initiate the polling.
+        else if (!isNotActive && !poll) {
+          this.interval = setInterval(this.pollLanguageModelStatus, 5000);
         }
         if (!poll) this.setState({ isLanguageStatusLoading: false });
       });
     })
     .catch((err) => {
-      this.setState({ languageModelError: 'Error getting language model data: ' + err });
+      this.setState({ languageModelError:
+        `Error getting language model data: ${err.message}`});
       if (!poll) this.setState({ isLanguageStatusLoading: false });
     });
   }
@@ -181,26 +176,23 @@ export default class Train extends Component {
     })
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-            this.setState({ acousticModelData: data.data });
-            let isNotActive = this.checkModelStatusDone(data.data.status);
-            // If polling and if the model is no longer in an active state, stop polling.
-            if (isNotActive && poll) {
-              clearInterval(this.interval);
-            }
-            // If it is in an active state, initiate the polling.
-            else if (!isNotActive && !poll) {
-              this.interval = setInterval(this.pollAcousticModelStatus, 5000);
-            }
+        this.setState({ acousticModelData: data.data });
+        let isNotActive = this.checkModelStatusDone(data.data.status);
+        // If polling and if the model is no longer in an active state, stop
+        // polling.
+        if (isNotActive && poll) {
+          clearInterval(this.interval);
         }
-        else {
-          this.setState({ acousticModelError: JSON.stringify(data, undefined, 2) });
+        // If it is in an active state, initiate the polling.
+        else if (!isNotActive && !poll) {
+          this.interval = setInterval(this.pollAcousticModelStatus, 5000);
         }
         if (!poll) this.setState({ isAcousticStatusLoading: false });
       });
     })
     .catch((err) => {
-      this.setState({ acousticModelError: 'Error getting acoustic model data: ' + err });
+      this.setState({ acousticModelError:
+        `Error getting acoustic model data: ${err.message}` });
       if (!poll) this.setState({ isAcousticStatusLoading: false });
     });
   }

@@ -5,6 +5,7 @@ import { LinkContainer } from 'react-router-bootstrap';
 import Routes from './Routes';
 import config from './config';
 import './App.css';
+import { handleFetchNonOK } from './pages/util';
 
 
 class App extends Component {
@@ -22,20 +23,20 @@ class App extends Component {
       method: 'GET',
       credentials: 'include',
     })
-      .then((response) => {
-        if (response.ok) {
-          this.userHasAuthenticated(true);
-          response.json().then((data) => {
-            localStorage.setItem('username', data.user.username);
-            localStorage.setItem('customLanguageModel', data.user.langModel);
-            localStorage.setItem('customAcousticModel', data.user.acousticModel);
-          });
-        }
-        this.setState({ isAuthenticating: false });
-      })
-      .catch((err) => {
-        console.log('Not logged in.', err);
+    .then(handleFetchNonOK)
+    .then((response) => {
+      this.userHasAuthenticated(true);
+      response.json().then((data) => {
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('customLanguageModel', data.user.langModel);
+        localStorage.setItem('customAcousticModel', data.user.acousticModel);
       });
+      this.setState({ isAuthenticating: false });
+    })
+    .catch((err) => {
+      console.log('Not logged in.', err.message);
+      this.setState({ isAuthenticating: false });
+    });
   }
 
   userHasAuthenticated = (authenticated) => {
@@ -47,17 +48,16 @@ class App extends Component {
       method: 'POST',
       credentials: 'include',
     })
-      .then((response) => {
-        if (response.ok) {
-          this.userHasAuthenticated(false);
-          localStorage.clear();
-          const { history } = this.props;
-          history.push('/');
-        }
-      })
-      .catch((err) => {
-        console.log('Error logging out user.', err);
-      });
+    .then(handleFetchNonOK)
+    .then((response) => {
+      this.userHasAuthenticated(false);
+      localStorage.clear();
+      const { history } = this.props;
+      history.push('/');
+    })
+    .catch((err) => {
+      console.log('Error logging out user.', err.message);
+    });
   }
 
   render() {

@@ -5,6 +5,7 @@ import {
 import AlertDismissable from '../components/AlertDismissable';
 import config from '../config';
 import './Login.css';
+import { handleFetchNonOK } from './util';
 
 /**
  * Class to handle the rendering of the Login page.
@@ -41,24 +42,17 @@ export default class Login extends Component {
         'Content-Type': 'application/json'
       },
     })
+    .then(handleFetchNonOK)
     .then((response) => {
-      if (response.ok) {
-        response.json().then((data) => {
-          localStorage.setItem('username', data.user.username);
-          localStorage.setItem('customLanguageModel', data.user.langModel);
-          localStorage.setItem('customAcousticModel', data.user.acousticModel);
-          this.props.userHasAuthenticated(true);
-        });
-      }
-      else {
-        this.setState({
-          error: 'Could not authenticate. Please ensure your credentials are correct.'
-        });
-      }
+      response.json().then((data) => {
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('customLanguageModel', data.user.langModel);
+        localStorage.setItem('customAcousticModel', data.user.acousticModel);
+        this.props.userHasAuthenticated(true);
+      });
     })
     .catch((err) => {
-      console.log('Could not authenticate: ', err);
-      this.setState({ error: 'Could not authenticate: ' + err });
+      this.setState({ error: `Could not authenticate: ${err.message}` });
     });
   }
 

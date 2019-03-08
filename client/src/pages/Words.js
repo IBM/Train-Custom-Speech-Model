@@ -4,6 +4,7 @@ import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
 import config from '../config';
 import './Words.css';
+import { handleFetchNonOK } from './util';
 
 /**
  * Class to handle the rendering of the Words page where users can view and manage custom words.
@@ -38,22 +39,18 @@ export default class Words extends Component {
       method: 'GET',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        if (response.ok) {
-          let sortedWords = data.words.sort(
-            (a, b) => (a.word < b.word) ? -1 : ((a.word > b.word) ? 1 : 0)
-          );
-          this.setState({ words: sortedWords });
-        }
-        else {
-          this.setState({ listError: JSON.stringify(data, undefined, 2) });
-        }
+        let sortedWords = data.words.sort(
+          (a, b) => (a.word < b.word) ? -1 : ((a.word > b.word) ? 1 : 0)
+        );
+        this.setState({ words: sortedWords });
         this.setState({ isLoading: false });
       });
     })
     .catch((err) => {
-      this.setState({ listError: err });
+      this.setState({ listError: err.message });
       this.setState({ isLoading: false });
     });
   }
@@ -65,17 +62,12 @@ export default class Words extends Component {
       method: 'DELETE',
       credentials: 'include'
     })
+    .then(handleFetchNonOK)
     .then((response) => {
-      if (response.ok) {
-        this.handleGetList();
-      }
-      else {
-        this.setState({ error: 'There was a problem deleting the word.' });
-        this.setState({ isLoading: false });
-      }
+      this.handleGetList();
     })
     .catch((err) => {
-      this.setState({ error: err });
+      this.setState({ error: err.message });
       this.setState({ isLoading: false });
     });
   }
@@ -91,12 +83,11 @@ export default class Words extends Component {
         'Content-Type': 'application/json'
       },
     })
+    .then(handleFetchNonOK)
     .then((response) => {
-      if (response.ok) {
-        response.json().then((data) => {
-          console.log(data);
-        });
-      }
+      response.json().then((data) => {
+        console.log(data);
+      });
       this.setState({ [loadingKey]: false });
     })
     .catch((err) => {
