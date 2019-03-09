@@ -69,10 +69,10 @@ async function postTranscribe (req: Request, res: Response) {
       else {
         const transcript = results.results.map(
           (result:STTDef.SpeechRecognitionResult) => {
-            return result.alternatives[0].transcript;
+            return result.alternatives[0].transcript.trimRight();
         });
         return res.status(200).json({
-          transcription: transcript.join('')
+          transcription: transcript.join('\r\n')
         });
       }
   });
