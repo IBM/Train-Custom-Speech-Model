@@ -1,7 +1,9 @@
 import React, { Component, Fragment } from 'react';
+import ReactDOM from 'react-dom';
 import {
   Checkbox, Panel, Form, FormGroup, FormControl, ControlLabel,
-  Glyphicon, HelpBlock, OverlayTrigger, Tooltip
+  Glyphicon, HelpBlock, OverlayTrigger, Tooltip, ToggleButtonGroup,
+  ToggleButton
 } from 'react-bootstrap';
 import LoadButton from '../components/LoadButton';
 import AlertDismissable from '../components/AlertDismissable';
@@ -9,16 +11,25 @@ import config from '../config';
 import './Transcribe.css';
 import { handleFetchNonOK } from './util';
 
+const HIDE = {display: 'none'};
+const SHOW = {display: 'inline-block'};
 /**
  * Class to handle the rendering of the Transcribe page where users can submit audio files to have
  * transcribed.
  * @extends React.Component
  */
+
 export default class Transcribe extends Component {
   constructor(props) {
     super(props);
 
     this.file = null;
+    this.socket = null;
+    this.textArea = null;
+    this.audioPlayer = null;
+    this.playQueue = [];
+    this.audioOp = null;
+    this.audioOpDisplay = HIDE;
 
     this.state = {
       isTranscribing: false,
@@ -30,8 +41,145 @@ export default class Transcribe extends Component {
       transcribeError: '',
       submitError: '',
       fileSettingsOpen: true,
-      corpusName: ''
+      corpusName: '',
+      userStopAudio: false,
+      audioOpSelection: 'play'
     };
+  }
+
+  componentDidMount() {
+    this.socket = new WebSocket(config.WS_ENDPOINT);
+    this.socket.onopen = () => {
+      // console.log('Socket open.');
+    };
+    this.socket.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      if(data.transcript) {
+        if (this.state.userStopAudio) {
+          // user end the audio, directly render the transcript
+          this.setState(
+            { content: `${this.state.content}${data.transcript}\r\n` });
+        } else {
+          this.playQueue.push(data);
+        }
+      }
+      if (data.finished) {
+        let newState = {isTranscribing: false, content: this.state.content};
+        let oldState = {...this.state, ...newState};
+        this.handleTranscriptQueue(oldState, newState);
+        this.setState(newState);
+      }
+      if (data.error) {
+        if (this.audioPlayer.played) {
+          this.handleAudioOp('stop');
+        }
+        this.setState(
+          { transcribeError: data.error,
+            isTranscribing: false
+          });
+      }
+    };
+  }
+
+  getRemainingTranscripts() {
+    if (this.playQueue.length === 0) return undefined;
+    const remaining = this.playQueue.map( (data) => {
+      return data.transcript;
+    }).join('\r\n');
+    this.playQueue.length = 0;
+    return remaining;
+  }
+
+  handleTranscriptQueue = (oldState, newState) => {
+    if (this.audioPlayer.ended || oldState.userStopAudio) {
+      // audio ends or user ends the audio
+      if (!oldState.isTranscribing) {
+        Object.assign(newState, {
+          hasTranscribed: true,
+          fileSettingsOpen: false
+        });
+      }
+      let remaining = this.getRemainingTranscripts();
+      if (remaining !== undefined) {
+        newState.content = `${oldState.content}${remaining}\r\n`;
+      }
+    }
+  }
+
+  handleAudioOp = (event) => {
+    switch (event) {
+      case ('stop'):
+      {
+        this.audioPlayer.pause();
+        this.audioOpDisplay = HIDE;
+        let newState = { userStopAudio: true, audioOpSelection: 'play' };
+        let oldState = {...this.state, userStopAudio: true};
+        this.handleTranscriptQueue(oldState, newState);
+        this.setState(newState);
+        break;
+      }
+      case ('play'):
+        this.audioPlayer.play();
+        this.setState({audioOpSelection: 'play'});
+        break;
+      case ('pause'):
+        this.audioPlayer.pause();
+        this.setState({audioOpSelection: 'pause'});
+        break;
+      default:
+        break;
+    }
+  }
+
+  playAudio() {
+    if (this.state.isTranscribing === true) {
+      let reader = new FileReader();
+      // console.log(`transcriptQueue shall be empty: ${this.playQueue.length}`);
+      this.playQueue.length = 0;
+      reader.onload = (e) => {
+        this.audioPlayer.src = e.target.result;
+        this.audioPlayer.play();
+        this.audioPlayer.onended = () => {
+          const newState = {};
+          this.audioPlayer.ontimeupdate = null;
+          this.audioOpDisplay = HIDE;
+          newState.audioOpSelection = 'play';
+          this.handleTranscriptQueue(this.state, newState);
+          this.setState(newState);
+        };
+      };
+      this.audioPlayer.ontimeupdate = (e) => {
+        if (this.playQueue.length > 0) {
+          if (this.audioPlayer.currentTime > this.playQueue[0].start) {
+            const transcript = this.playQueue.shift().transcript;
+            this.setState(
+              { content: `${this.state.content}${transcript}\r\n` });
+          }
+        }
+      };
+      reader.readAsDataURL(this.file);
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.state.isTranscribing || this.audioPlayer.played) {
+      // can't find the way to set the scrollTop for this.textArea.current
+      // using ReactDOM is the last option
+      let textArea = ReactDOM.findDOMNode(this.textArea);
+      textArea.scrollTop = textArea.scrollHeight;
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.socket) {
+      this.socket.onmessage = null;
+      this.socket.close();
+      // console.log('close socket');
+    }
+    if (this.audioPlayer) {
+      this.audioPlayer.ontimeupdate = null;
+      this.audioPlayer.onended = null;
+    }
   }
 
   handleChange = event => {
@@ -65,7 +213,6 @@ export default class Transcribe extends Component {
       return;
     }
 
-    this.setState({ isTranscribing: true });
     let formData  = new FormData();
     formData.append('audio', this.file);
     formData.append('languageModel', this.languageModelType.value);
@@ -79,10 +226,14 @@ export default class Transcribe extends Component {
     .then(handleFetchNonOK)
     .then((response) => {
       response.json().then((data) => {
-        this.setState({ hasTranscribed: true });
-        this.setState({ content: data.transcription });
-        this.setState({ isTranscribing: false });
-        this.setState({ fileSettingsOpen: false });
+        // the transcription is received via WebSocket
+        this.audioOpDisplay = SHOW;
+        this.setState(
+          { content: '', hasTranscribed: false,
+            isTranscribing: true, userStopAudio: false
+          });
+        this.socket.send(JSON.stringify({tid: data.tid}));
+        this.playAudio();
       });
     })
     .catch((err) => {
@@ -165,6 +316,7 @@ export default class Transcribe extends Component {
   }
 
   render() {
+    const nodisplay = {display: 'none'};
     return (
       <div className="STTForm">
         <h2>Custom Speech Transcriber</h2>
@@ -187,6 +339,8 @@ export default class Transcribe extends Component {
           </Panel.Heading>
           <Panel.Collapse>
             <Panel.Body>
+              <audio controls id="audioPlayer" style={nodisplay}
+                ref={(player) => {this.audioPlayer = player;}}/>
               <Form onSubmit={this.handleTranscribe}>
                 <FormGroup controlId="formControlsSelect">
                   <ControlLabel>Select Language Model</ControlLabel>
@@ -247,13 +401,30 @@ export default class Transcribe extends Component {
           </Panel.Collapse>
         </Panel>
         <form>
+          <ToggleButtonGroup style={this.audioOpDisplay} name="audioOp"
+            className="adjustmentinfo" type="radio"
+            ref={(audioOp) => {this.audioOp = audioOp;}}
+            value={this.state.audioOpSelection} onChange={this.handleAudioOp}
+            defaultValue={this.state.audioOpSelection}>
+            {
+              ['play', 'pause', 'stop'].map((item) => {
+                return (
+                <ToggleButton type="radio" name={item} key={item}
+                  checked={this.state.audioOpSelection === item}
+                  value={item} className="btn-circle">
+                  <Glyphicon glyph={item} />
+                </ToggleButton>
+                );
+              })
+            }
+          </ToggleButtonGroup>
           <h4>Your Transcription</h4>
           <FormGroup controlId="content">
             <FormControl
               onChange={this.handleChange}
               value={this.state.content}
               componentClass="textarea"
-              disabled={!this.state.hasTranscribed}
+              ref={(textArea) => {this.textArea = textArea;}}
             />
           </FormGroup>
         </form>

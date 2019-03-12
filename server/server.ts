@@ -9,12 +9,14 @@ import * as compression from 'compression';  // compresses requests
 import * as cors from 'cors';
 import * as express from 'express';
 import * as session from 'express-session';
-import {User, getCfenv} from './util';
+import {User, getCfenv, wsHandler } from './util';
 import * as crypto from 'crypto';
 import * as passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import * as expressValidator from 'express-validator';
 import * as bunyanFactory from 'express-bunyan-logger';
+import { Server as WSServer } from 'ws';
+import * as http from 'http';
 
  /**
   * Routes
@@ -75,7 +77,12 @@ class App {
     /**
      * Start Express server.
      */
-    this.express.listen(this.express.get('port'), () => {
+
+    const server = http.createServer();
+    const wss = new WSServer({server});
+    server.on('request', this.express);
+    wss.on('connection', wsHandler);
+    server.listen(this.express.get('port'), () => {
       // tslint:disable-next-line:no-console
       console.log(('  App is running at http://localhost:%d \
       in %s mode'), this.express.get('port'), this.express.get('env'));
