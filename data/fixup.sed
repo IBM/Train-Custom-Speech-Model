@@ -13,3 +13,5 @@ s/\[skip\]//g
 s/ dication/ dictation/g 
 s/ dicharge/ discharge/g
 s/ wsould/ would/g
+s/\([.]\) \([[:upper:]]\)/\1\
+\2/g
