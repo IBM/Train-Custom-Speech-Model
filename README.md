@@ -152,7 +152,9 @@ The local nodejs web server will automatically open your browser to [http://loca
 
 ![main-page](doc/source/images/main-page.png)
 
-Select the `Train` tab to show the training options. Train both the `Language Model` and `Acoustic Model`.
+Before training the model, you must add the corpus and audio files. The files can be uploaded using the panels displayed in the `Corpora` and `Audio` tabs of the application UI.
+
+Then select the `Train` tab to show the training options. Train both the `Language Model` and `Acoustic Model`.
 
 ![training-status](doc/source/images/training-panel.png)
 
@@ -244,13 +246,13 @@ python ../cmd/list_audio.py
 
 > Note: it may take some time to process each audio file. If processing is not completed yet, the command will return a *409* error message; in this case, simply retry later.
 
-Whe the status of the custom acoustic model is set to *"ready"*, you can start the training by running:
+When the status of the custom acoustic model is set to *"ready"*, you can start the training by running:
 
 ```bash
 python ../cmd/train_acoustic_model.py
 ```
 
-Training the acoustic model is asynchronous and can potentially take hours to complete. To determine when training is completed, you can query the model and check if the status has changed from *"traning"* to *"available"*.
+Training the acoustic model is asynchronous and can potentially take hours to complete. To determine when training is completed, you can query the model and check if the status has changed from *"training"* to *"available"*.
 
 ```bash
 python ../cmd/list_acoustic_model.py
@@ -306,7 +308,7 @@ If using the command line, you can directly edit the transcription output file g
 
 # Links
 
-* [Demo on Youtube](https://www.youtube.com/watch?v=Jxi7U7VOMYg)
+* [Demo on Youtube](https://www.youtube.com/watch?v=bBLu1Ap8c7c): Watch the video
 
 # Troubleshooting
 
