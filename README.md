@@ -38,7 +38,7 @@ When the reader has completed this code pattern, they will understand how to:
 
 # Watch the Video
 
-[!["video"](https://img.youtube.com/vi/bBLu1Ap8c7c/0.jpg)](https://youtu.be/bBLu1Ap8c7c)
+[![video](https://i.ytimg.com/vi/bBLu1Ap8c7c/hqdefault.jpg)](https://youtu.be/bBLu1Ap8c7c)
 
 # Steps
 
