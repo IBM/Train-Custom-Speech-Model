@@ -5,7 +5,6 @@ import * as stream from 'stream';
 import {WatsonSTT} from '../util';
 import { Request, Response, RequestHandler } from 'express';
 import { NextFunction } from 'connect';
-import * as STTDef from 'watson-developer-cloud/speech-to-text/v1-generated';
 
 declare global {
   namespace Express {
@@ -25,14 +24,6 @@ const upload = multer({ storage: multer.memoryStorage() });
  */
 const uploadAudio: RequestHandler = upload.single('audio');
 
-interface RecognizeParams {
-  audio: stream.Readable;
-  content_type: string;
-  model: string;
-  language_customization_id?: string;
-  acoustic_customization_id?: string;
-}
-
 /**
  * POST /api/transcribe
  */
@@ -41,42 +32,18 @@ async function postTranscribe (req: Request, res: Response) {
   bufferStream.end( req.file.buffer );
   const type = req.file.originalname.split('.').pop();
 
-  const recognizeParams: RecognizeParams = {
-    audio: bufferStream,
-    content_type: `audio/${type}`,
-    model: 'en-US_NarrowbandModel'
-  };
+  const result = await req.watsonSTT.transcribe(req.file.buffer, type,
+    req.file.originalname, req.body.languageModel, req.body.acousticModel);
 
-  const watsonSTT: WatsonSTT = req.watsonSTT;
-
-  if (req.body.languageModel !== 'en-US_NarrowbandModel') {
-    recognizeParams.language_customization_id = watsonSTT.langModelId;
+  if (result[0]) {
+    req.log.error(
+      `recognize call failed: ${JSON.stringify(result[0], null, 2)}`);
+    return res.status(500).json({
+      error: result[0].code || 'failed to translate the file'
+    });
+  } else {
+    return res.status(200).json({tid: result[1]});
   }
-
-  if (req.body.acousticModel !== 'en-US_NarrowbandModel') {
-    recognizeParams.acoustic_customization_id = watsonSTT.acousticModelId;
-  }
-
-  watsonSTT.speech.recognize(recognizeParams,
-    (error: string, results: STTDef.SpeechRecognitionResults) => {
-      if (error || !results.results[0]) {
-        req.log.error(
-          `recognize call failed: ${JSON.stringify(error, null, 2)}`);
-        return res.status(500).json({
-          error: error || results.results[0]
-        });
-      }
-      else {
-        const transcript = results.results.map(
-          (result:STTDef.SpeechRecognitionResult) => {
-            return result.alternatives[0].transcript.trimRight();
-        });
-        return res.status(200).json({
-          transcription: transcript.join('\r\n')
-        });
-      }
-  });
-  return;
 }
 
 async function getModel(req: Request, res: Response) {

@@ -5,6 +5,14 @@ import * as cfenv from 'cfenv';
 import * as path from 'path';
 import SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
 import * as STTDef from 'watson-developer-cloud/speech-to-text/v1-generated';
+import * as WebSocket from 'ws';
+
+/**
+ * Need the final property in SpeechToTextV1.SpeechRecognitionResult
+ */
+interface STTStreamResult {
+  final?: boolean;
+}
 
 interface CfenvOpt {
   vcapFile?: string;
@@ -35,6 +43,18 @@ export interface STTError {
   msg?: string;
 }
 
+interface RecognizeParams {
+  objectMode?: boolean;
+  interim_results?: boolean;
+  content_type: string;
+  model: string;
+  language_customization_id?: string;
+  acoustic_customization_id?: string;
+  smart_formatting?: boolean;
+  redaction?: boolean;
+  word_alternatives_threshold?: number;
+  timestamps?: boolean;
+}
 /**
  * A class that wraps Watson STTV1 api and mainly focus on custom
  * language/acoustic model management.
@@ -139,6 +159,74 @@ export class WatsonSTT {
       });
     }
 
+    async transcribe(buff: Buffer, fileType: string, name: string,
+        languageModel: string, acousticModel: string ):
+        Promise<[STTError, number?]> {
+
+      const recognizeParams: RecognizeParams = {
+        objectMode: true,
+        interim_results: true,
+        content_type: `audio/${fileType}`,
+        model: 'en-US_NarrowbandModel',
+        smart_formatting: true,
+        timestamps: true,
+        word_alternatives_threshold: 0.9
+      };
+
+      if (languageModel !== 'en-US_NarrowbandModel') {
+        recognizeParams.language_customization_id = this.langModelId;
+      }
+
+      if (acousticModel !== 'en-US_NarrowbandModel') {
+        recognizeParams.acoustic_customization_id = this.acousticModelId;
+      }
+
+      const tf: TranscribeFile = {
+        tid: tid++,
+        name,
+        languageModel,
+        acousticModel,
+        ws: null
+      };
+
+      // add TranscribeFile to queue and wait for client's response
+      // then a corresponding WebSocket will be added
+      addQueue(tf);
+
+      // Create the stream.
+      const sstream = this.speech.recognizeUsingWebSocket(recognizeParams);
+      sstream.on('data', (event: STTDef.SpeechRecognitionResults) => {
+        if(event.results[0] && tf.ws &&
+          (event.results[0] as STTStreamResult).final === true) {
+
+          const result = event.results[0].alternatives[0];
+          const timestamps = result.timestamps;
+          tf.ws.send(JSON.stringify(
+            { transcript: result.transcript.trim(),
+              start: timestamps[0][1],
+              stop: timestamps[timestamps.length - 1][2]
+            }));
+        }
+      });
+      sstream.on('error', (event) => {
+        if(tf.ws) {
+          tf.ws.send(JSON.stringify({error: event}));
+        }
+        delQueue(tf);
+      });
+      sstream.on('close', () => {
+        if (tf.ws) {
+          tf.ws.send(JSON.stringify({finished: true}));
+        }
+        delQueue(tf);
+      });
+
+      return new Promise<[STTError, number?]>( (resolve, reject) => {
+        sstream.end(buff, () => {
+          resolve([undefined, tf.tid]);
+        });
+      });
+    }
     /**
      * Get corpus information by the corpus name
      * @param corpusName corpus name
@@ -518,3 +606,40 @@ function getCustomAcousticModelId(
     });
   });
 }
+
+const queue: Queue<TranscribeFile> = {};
+let tid = 0;
+interface Queue<T> {
+  [tid:string]: T;
+}
+
+interface TranscribeFile {
+  tid: number;
+  name:string;
+  languageModel: string;
+  acousticModel: string;
+  ws: WebSocket;
+}
+
+const addQueue = (tf: TranscribeFile) => {
+  queue[tf.tid] = tf;
+};
+
+const delQueue = (tf: TranscribeFile) => {
+  delete queue[tf.tid];
+};
+
+export let wsHandler = (socket: WebSocket): void => {
+  socket.on('message', (message) => {
+    if (typeof(message) === 'string') {
+      const json: TranscribeFile = JSON.parse(message as string);
+      const tf = queue[json.tid];
+      if (tf) {
+        tf.ws = socket;
+        tf.ws.onclose = tf.ws.onerror = () => {
+          tf.ws = null;
+        };
+      }
+    }
+  });
+};
