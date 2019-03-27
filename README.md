@@ -314,7 +314,7 @@ If using the command line, you can directly edit the transcription output file g
 
 * Error: Please set your username in the environment variable USERNAME. If you use IAM service credentials, set USERNAME set to the string "apikey" and set PASSWORD to the value of your IAM API key.
 
-  > If you choose to use the command line, make sure you set up your environemnt variables.
+  > If you choose to use the command line, make sure you set up your environment variables.
 
 * *409* error message.
 
