@@ -27,7 +27,7 @@ def main(folder):
             for i, j in replacement_dict.items():
                 text = text.replace(i, j)
             trans_dict = {filename : text}
-            with open(folder + 'documents.csv', 'a') as f:
+            with open(folder + '/documents.csv', 'a') as f:
                 w = csv.writer(f)
                 for k, v in trans_dict.items():
                     w.writerow([k, v])
