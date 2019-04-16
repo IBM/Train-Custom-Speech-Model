@@ -48,6 +48,7 @@ export default class Login extends Component {
         localStorage.setItem('username', data.user.username);
         localStorage.setItem('customLanguageModel', data.user.langModel);
         localStorage.setItem('customAcousticModel', data.user.acousticModel);
+        localStorage.setItem('baseModel', data.user.baseModel);
         this.props.userHasAuthenticated(true);
       });
     })

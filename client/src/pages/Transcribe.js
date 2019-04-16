@@ -350,9 +350,12 @@ export default class Transcribe extends Component {
                     inputRef={languageModelType => this.languageModelType = languageModelType}>
                     { localStorage.getItem('customLanguageModel') &&
                       <option value={localStorage.getItem('customLanguageModel')}>
-                        Custom Language Model</option>
+                        {localStorage.getItem('customLanguageModel')}</option>
                     }
-                    <option value={config.BASE_STT_MODEL}>Base Language Model</option>
+                    { localStorage.getItem('baseModel') &&
+                      <option value={localStorage.getItem('baseModel')}>
+                        Base Language Model ({localStorage.getItem('baseModel')})</option>
+                    }
                   </FormControl>
                   <HelpBlock>Choose your customized language model or the base model.</HelpBlock>
 
@@ -363,9 +366,12 @@ export default class Transcribe extends Component {
                     inputRef={acousticModelType => this.acousticModelType = acousticModelType}>
                     { localStorage.getItem('customAcousticModel') &&
                       <option value={localStorage.getItem('customAcousticModel')}>
-                        Custom Acoustic Model</option>
+                        {localStorage.getItem('customAcousticModel')}</option>
                     }
-                    <option value={config.BASE_STT_MODEL}>Base Acoustic Model</option>
+                    { localStorage.getItem('baseModel') &&
+                      <option value={localStorage.getItem('baseModel')}>
+                      Base Language Model ({localStorage.getItem('baseModel')})</option>
+                    }
                   </FormControl>
                   <HelpBlock>Choose your customized acoustic model or the base model.</HelpBlock>
                 </FormGroup>
