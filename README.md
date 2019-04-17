@@ -327,24 +327,27 @@ If using the command line, you can directly edit the transcription output file g
 * *409* error message.
 
   > This indicates the service is busy. Try the command again later.
-  
-* Error uploading the audio files:  
+
+* Error uploading the audio files:
 
   > Since the audio files are large (70-90MB), you may encounter error when uploading them because of unstable network connection.  In this case, you can break up the files into smaller files and upload them.  The training for the acoustic model will work the same way.
 
   For example, the command to zip the first audio file as described above:
-  
+
   ```bash
   zip audio-set1.zip -xi Audio/[6-9].wav Audio/[1-7][0-9].wav
   ```
-  
+
   To break up into two smaller files, adjust the regular expression as appropriate:
-  
+
   ```bash
   zip audio-set1a.zip -xi Audio/[6-9].wav Audio/[1-3][0-9].wav
   zip audio-set1b.zip -xi Audio/[4-7][0-9].wav
   ```
-   
+
+# Deploy on IBM Cloud
+
+Instructions for deploying the web application on Cloud Foundry can be found [here](doc/cloud_deploy.md).
 
 # Learn more
 

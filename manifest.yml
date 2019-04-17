@@ -1,5 +1,6 @@
 ---
 applications:
- - name: active-learning-demo
-   random-route: true
-   memory: 1024M
+ - name: watson-stt-customizer
+   memory: 512M
+   routes:
+   - route: your-host.mybluemix.net
