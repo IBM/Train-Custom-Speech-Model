@@ -22,6 +22,7 @@ export interface User {
   username: string;
   langModel: string;
   acousticModel: string;
+  baseModel: string;
 }
 
 export function getCfenv () {
@@ -66,16 +67,22 @@ export class WatsonSTT {
   readonly langModelId: string;
   readonly acousticModelName: string;
   readonly acousticModelId: string;
+  readonly baseModel: string;
+  readonly speechModels: STTDef.SpeechModels;
 
   private constructor(speech: SpeechToTextV1, username: string,
                       langModelName: string, langModelId: string,
-                      acousticModelName: string, acousticModelId: string) {
+                      acousticModelName: string, acousticModelId: string,
+                      baseModel: string, speechModels: STTDef.SpeechModels) {
     this.speech = speech;
     this.username = username;
     this.langModelName = langModelName;
     this.langModelId = langModelId;
     this.acousticModelName = acousticModelName;
     this.acousticModelId = acousticModelId;
+    this.baseModel = baseModel;
+    this.speechModels = speechModels;
+
   }
 
   /**
@@ -87,7 +94,6 @@ export class WatsonSTT {
     if (rev && rev instanceof WatsonSTT) {
       return Promise.resolve(rev);
     }
-
     if (!req.app.get('stt_service') ||
         !req.app.get('stt_service').credentials) {
       req.log.error('Can not get credentials for Watson service');
@@ -96,7 +102,7 @@ export class WatsonSTT {
 
     const speech = getSTTV1(req.app.get('stt_service').credentials);
     const langModelId = await getCustomLangModelId(speech, req.user);
-
+    const speechModels = await getBaseModels(speech);
     if (langModelId[0]) {
       req.log.error(`Custom language model error: ${langModelId[0]}`);
       return Promise.resolve(undefined);
@@ -110,7 +116,8 @@ export class WatsonSTT {
     return Promise.resolve(
       new WatsonSTT(speech, req.user.username,
         req.user.langModel, langModelId[1],
-        req.user.acousticModel, acousticModelId[1]));
+        req.user.acousticModel, acousticModelId[1],
+        req.user.baseModel, speechModels[1]));
     }
 
     async addCorpus(corpusName: string, corpus: string): Promise<[STTError]>  {
@@ -162,22 +169,29 @@ export class WatsonSTT {
     async transcribe(buff: Buffer, fileType: string, name: string,
         languageModel: string, acousticModel: string ):
         Promise<[STTError, number?]> {
-
       const recognizeParams: RecognizeParams = {
         objectMode: true,
         interim_results: true,
         content_type: `audio/${fileType}`,
-        model: 'en-US_NarrowbandModel',
+        model: this.baseModel,
         smart_formatting: true,
         timestamps: true,
         word_alternatives_threshold: 0.9
       };
 
-      if (languageModel !== 'en-US_NarrowbandModel') {
+      const langModelisBaseModel = this.isBaseModel(languageModel);
+      const acousticModelisBaseModel = this.isBaseModel(acousticModel);
+
+      // Enable client to pass in base model.
+      if (langModelisBaseModel){
+        recognizeParams.model = languageModel;
+      }
+
+      if (! langModelisBaseModel) {
         recognizeParams.language_customization_id = this.langModelId;
       }
 
-      if (acousticModel !== 'en-US_NarrowbandModel') {
+      if (! acousticModelisBaseModel) {
         recognizeParams.acoustic_customization_id = this.acousticModelId;
       }
 
@@ -188,11 +202,9 @@ export class WatsonSTT {
         acousticModel,
         ws: null
       };
-
       // add TranscribeFile to queue and wait for client's response
       // then a corresponding WebSocket will be added
       addQueue(tf);
-
       // Create the stream.
       const sstream = this.speech.recognizeUsingWebSocket(recognizeParams);
       sstream.on('data', (event: STTDef.SpeechRecognitionResults) => {
@@ -359,6 +371,21 @@ export class WatsonSTT {
           }
         });
       });
+    }
+
+    /**
+     * Check a model name is one of the base models
+     *
+     * @param model model name
+     */
+    isBaseModel(model: string): boolean {
+      let found = false;
+      if (this.speechModels.models.find((element): boolean => {
+        return element.name === model;
+      })){
+        return found = true;
+      }
+      return found;
     }
 
     /**
@@ -534,10 +561,12 @@ function getCustomLangModelId(
           }
         }
         // Need to create custom model here.
+        // The default base model for which the initial creation of
+        // custom language model is based on is configurable in model/user.json
         speech.createLanguageModel(
           {
             name: modelName,
-            base_model_name: 'en-US_NarrowbandModel',
+            base_model_name: user.baseModel,
             description: `Custom model for ${user.username}`,
           },
           (error: STTError, languageModel: STTDef.LanguageModel) => {
@@ -551,6 +580,24 @@ function getCustomLangModelId(
         });
     });
   });
+}
+/**
+ * Get the list of  supported base models
+ * @param speech SpeechtoTextV1
+ */
+function getBaseModels(speech: SpeechToTextV1):
+  Promise<[STTError,STTDef.SpeechModels?]>{
+    return new Promise<[STTError, STTDef.SpeechModels?]>(
+      (resolve, reject) => {
+        speech.listModels(null,
+        (error: STTError, results: STTDef.SpeechModels) => {
+        if (error) {
+          resolve([error]);
+        } else {
+          resolve([undefined, results]);
+        }
+        });
+    });
 }
 
 function getCustomAcousticModelId(
@@ -585,10 +632,12 @@ function getCustomAcousticModelId(
           }
         }
         // Create custom acoustic model here if it doesn't exist.
+        // The default base model for which the initial creation of
+        // custom acoustic model is based on is configurable in model/user.json
         speech.createAcousticModel(
           {
             name: modelName,
-            base_model_name: 'en-US_NarrowbandModel',
+            base_model_name: user.baseModel,
             description: `Custom acoustic model for ${user.username}`,
           },
           (error: STTError, acousticModel: STTDef.AcousticModel) => {
