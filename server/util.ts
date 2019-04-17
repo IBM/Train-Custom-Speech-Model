@@ -2,6 +2,7 @@
 
 import { Request } from 'express';
 import * as cfenv from 'cfenv';
+import * as fs from 'fs';
 import * as path from 'path';
 import SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
 import * as STTDef from 'watson-developer-cloud/speech-to-text/v1-generated';
@@ -26,15 +27,22 @@ export interface User {
 
 export function getCfenv () {
   const cfenvOpt: CfenvOpt = {};
+  const serviceName = process.env.STT_SERVICE_NAME ||
+    'code-pattern-custom-language-model';
 
-  // For local development
-  if (!process.env.VCAP_APPLICATION) {
-    cfenvOpt.vcapFile = path.join(__dirname, '..', 'services.json');
+  const service = cfenv.getAppEnv(cfenvOpt).getService(serviceName);
+
+  // If service was not found, fall back to services.json if it exists.
+  const servicesFile = path.join(__dirname, '..', 'services.json');
+  if (!service && fs.existsSync(servicesFile)) {
+    const creds = require(servicesFile);
+    return creds.services[serviceName][0];
+  }
+  // Just return the service.
+  else {
+    return service;
   }
 
-  return cfenv.getAppEnv(cfenvOpt)
-    .getService(process.env.STT_SERVICE_NAME ||
-      'code-pattern-custom-language-model');
 }
 
 export interface STTError {

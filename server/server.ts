@@ -70,6 +70,14 @@ class App {
    */
   private routes(): void {
     this.express.use('/api', router);
+    this.express.use(
+      express.static(path.join(__dirname, '..', 'client', 'build'))
+    );
+    this.express.get('/*', (req, res) => {
+      res.sendFile(
+        path.join(__dirname, '..', 'client' , 'build', 'index.html')
+      );
+    });
   }
 
   private launchConf() {
@@ -133,8 +141,9 @@ function initPassport() {
  */
 function isAuthenticated (req: express.Request, res: express.Response,
     next: express.NextFunction) {
-  if (req.isAuthenticated() || req.path === '/api/login') {
-    return next();
+  if (req.isAuthenticated() || req.path === '/api/login' ||
+    !(req.path.includes('api'))) {
+      return next();
   }
   return res.status(401).json({
     error: 'Not authorized to view this resource.'
