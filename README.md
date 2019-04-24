@@ -140,15 +140,18 @@ To allow the web service to connect to your **Watson Speech to Text** service, c
 ```
 
 The application will require a local login. The local user accounts are defined in the file [model/user.json](model/user.json). The pre-defined user/passwords are `user1/user1` and `user2/user2`. The `langModel` and `acousticModel` fields are the names of your custom language and acoustic models which will be created upon logging in if they do not already exist. You can change the `baseModel` field if the base model you are working with is different from our default. Here is an example of user3 using Korean as base language for transcribing. See [Supported language models](https://cloud.ibm.com/docs/services/speech-to-text?topic=speech-to-text-models#modelsList).
+
 ```json
 {
-  "user3": {
-    "password": "user3",
-    "langModel": "custom-korean-language",
-    "acousticModel": "custom-korean-acoustic",
-    "baseModel": "ko-KR_NarrowbandModel"
+	"user3": {
+		"password": "user3",
+		"langModel": "custom-korean-language",
+		"acousticModel": "custom-korean-acoustic",
+		"baseModel": "ko-KR_NarrowbandModel"
+	}
 }
 ```
+
 Install and start the application by running the following commands in the root directory:
 
 ```bash
