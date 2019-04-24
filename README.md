@@ -347,7 +347,7 @@ If using the command line, you can directly edit the transcription output file g
 
 # Deploy on IBM Cloud
 
-Instructions for deploying the web application on Cloud Foundry can be found [here](doc/cloud_deploy.md).
+Instructions for deploying the web application on Cloud Foundry can be found [here](doc/cloud-deploy.md).
 
 # Learn more
 
