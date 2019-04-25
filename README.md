@@ -70,7 +70,7 @@ From your **Watson Speech to Text** service instance, select the `Service Creden
 
 If no credentials exist, select the `New Credential` button to create a new set of credentials.
 
-Save off the `apikey` value as it will be needed in future steps.
+Save off the `apikey` and `url` values as they will be needed in future steps.
 
 ## 4. Download and prepare the data
 
@@ -120,7 +120,7 @@ The application is a *nodejs* web service running locally with a GUI implemented
 
 * Install [Node.js](https://nodejs.org/en/) runtime or NPM.
 
-To allow the web service to connect to your **Watson Speech to Text** service, create in the root directory a file named `services.json` by copying the sample file `services.sample.json`. Update the apikey in the file with your api key you retrieved in [Step 3](#3-configure-credentials).
+To allow the web service to connect to your **Watson Speech to Text** service, create in the root directory a file named `services.json` by copying the sample file `services.sample.json`. Update the `apikey` and 'url' fields in the newly created file with your own values that were retrieved in [Step 3](#3-configure-credentials).
 
 ```json
 {
@@ -129,7 +129,7 @@ To allow the web service to connect to your **Watson Speech to Text** service, c
       {
         "credentials": {
           "apikey": "<your api key>",
-          "url": "https://stream.watsonplatform.net/speech-to-text/api"
+          "url": "<your api url>"
         },
         "label": "speech_to_text",
         "name": "code-pattern-custom-language-model"
