@@ -4,7 +4,7 @@
       {
         "credentials": {
           "apikey": "<your api key>",
-          "url": "https://stream.watsonplatform.net/speech-to-text/api"
+          "url": "<your api url>"
         },
         "label": "speech_to_text",
         "name": "code-pattern-custom-language-model"
