@@ -45,10 +45,12 @@ export default class Corpora extends Component {
   }
 
   handleFileChange = event => {
-    this.fileReader = new FileReader();
-    this.fileReader.onloadend = () => { this.fileContents = this.fileReader.result; };
-    this.fileReader.readAsText(event.target.files[0]);
-    this.setState({ 'filename': event.target.files[0].name });
+    if (event.target.files.length) {
+      this.fileReader = new FileReader();
+      this.fileReader.onloadend = () => { this.fileContents = this.fileReader.result; };
+      this.fileReader.readAsText(event.target.files[0]);
+      this.setState({ 'filename': event.target.files[0].name });
+    }
   }
 
   handleDismiss = errorType => {

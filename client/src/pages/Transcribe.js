@@ -189,8 +189,10 @@ export default class Transcribe extends Component {
   }
 
   handleFileChange = event => {
-    this.file = event.target.files[0];
-    this.setState({ 'filename': this.file.name });
+    if (event.target.files.length) {
+      this.file = event.target.files[0];
+      this.setState({ 'filename': this.file.name });
+    }
   }
 
   handlePanelToggle = event => {
