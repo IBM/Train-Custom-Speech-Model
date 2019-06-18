@@ -4,8 +4,8 @@ import { Request } from 'express';
 import * as cfenv from 'cfenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
-import * as STTDef from 'watson-developer-cloud/speech-to-text/v1-generated';
+import SpeechToTextV1 = require('ibm-watson/speech-to-text/v1');
+import * as STTDef from 'ibm-watson/speech-to-text/v1-generated';
 import * as WebSocket from 'ws';
 
 /**
@@ -159,6 +159,7 @@ export class WatsonSTT {
 
       const addWordParams = {
         customization_id: this.langModelId,
+        word_name: word,
         word,
         sounds_like: soundsLike,
         display_as: displayAs
@@ -230,7 +231,7 @@ export class WatsonSTT {
       });
       sstream.on('error', (event) => {
         if(tf.ws) {
-          tf.ws.send(JSON.stringify({error: event}));
+          tf.ws.send(JSON.stringify({error: event.message}));
         }
         delQueue(tf);
       });
@@ -242,9 +243,20 @@ export class WatsonSTT {
       });
 
       return new Promise<[STTError, number?]>( (resolve, reject) => {
-        sstream.end(buff, () => {
-          resolve([undefined, tf.tid]);
-        });
+        let cursor = 0;
+        const threeMB = 1024 * 1024 * 3;
+        while (true) {
+          let end = cursor + threeMB;
+          if (end > buff.byteLength) {
+            end = buff.byteLength;
+            sstream.end(buff.slice(cursor, end), () => {
+              resolve([undefined, tf.tid]);
+            });
+            break;
+          }
+          sstream.write(buff.slice(cursor, end));
+          cursor += threeMB;
+        }
       });
     }
     /**
