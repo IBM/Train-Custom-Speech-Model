@@ -80,7 +80,7 @@ Create both an `Audio` and `Documents` subdirectory inside the `data` directory 
 
 The transcription files stored in the `Documents` directory will be in **rtf** format, and need to be converted to plain text. Use the following bash script to convert them all to **txt** files.
 
-> Note: Ensure that you have Python 2.7 installed.
+> If you have Python 2.7 installed run the following bash-commands .
 
 ```bash
 pip install pyth
@@ -88,6 +88,11 @@ for name in `ls Documents/*.rtf`;
 do
   python convert_rtf.py $name
 done
+```
+> If you have Python 3 installed run the following instead:
+
+```bash
+python convert_rtf_python3.py
 ```
 
 The data needs careful preparation since our deep learning model will only be as good as the data used in the training. Preparation may include steps such as removing erroneous words in the text, bad audio recordings, etc. These steps are typically very time-consuming when dealing with large datasets.
