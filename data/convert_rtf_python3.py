@@ -1,5 +1,4 @@
 import glob
-#!pip install striprtf
 from striprtf.striprtf import rtf_to_text
 
 if __name__ == '__main__':
