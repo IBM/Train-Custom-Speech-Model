@@ -7,8 +7,6 @@
 #   pip install pyth 
 ###########################################################################
 
-# THIS IS A TEST COMMENT
-
 from pyth.plugins.rtf15.reader import Rtf15Reader
 from pyth.plugins.plaintext.writer import PlaintextWriter
 import sys
