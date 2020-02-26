@@ -14,7 +14,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 ##########################################################################
 
 audio_filename = env.get_arg("audio filename")
-print "\nAdding audio source ..."
+print("\nAdding audio source ...")
 
 headers = {'Content-Type' : "application/zip"}
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/acoustic_customizations/"+env.get_acoustic_id()+"/audio/"+audio_filename
@@ -22,10 +22,10 @@ uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/acoustic_customiz
 with open(audio_filename, 'rb') as f:
    r = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers, data=f)
 
-print "Adding audio source returns: ", r.status_code
+print("Adding audio source returns: ", r.status_code)
 if r.status_code != 201:
-   print "Failed to add audio source"
-   print r.text
+   print("Failed to add audio source")
+   print(r.text)
    sys.exit(-1)
 else:
    sys.exit(0)

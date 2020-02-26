@@ -15,28 +15,28 @@ import os, sys
 def get_username():
     try:
         return os.environ['USERNAME']
-    except: 
-        print "Please set your username in the environment variable USERNAME."
-        print "If you use IAM service credentials, set USERNAME set to the string \"apikey\""
-        print "and set PASSWORD to the value of your IAM API key."
+    except:
+        print("Please set your username in the environment variable USERNAME.")
+        print("If you use IAM service credentials, set USERNAME set to the string \"apikey\"")
+        print("and set PASSWORD to the value of your IAM API key.")
         sys.exit(-1)
-    
+
 
 def get_password():
-    try: 
+    try:
         return os.environ['PASSWORD']
     except:
-        print "Please set your password in the environment variable PASSWORD"
-        print "If you use IAM service credentials, set USERNAME set to the string \"apikey\""
-        print "and set PASSWORD to the value of your IAM API key."
+        print("Please set your password in the environment variable PASSWORD")
+        print("If you use IAM service credentials, set USERNAME set to the string \"apikey\"")
+        print("and set PASSWORD to the value of your IAM API key.")
         sys.exit(-1)
 
 
 def get_language_id ():
-    try: 
+    try:
         return os.environ['LANGUAGE_ID']
     except:
-        print "Please set the id for your custom language model in the environment variable LANGUAGE_ID"
+        print("Please set the id for your custom language model in the environment variable LANGUAGE_ID")
         sys.exit(-1)
 
 
@@ -44,15 +44,15 @@ def get_acoustic_id ():
     try:
         return os.environ['ACOUSTIC_ID']
     except:
-        print "Please set the id for your custom acoustic model in the environment variable ACOUSTIC_ID"
+        print("Please set the id for your custom acoustic model in the environment variable ACOUSTIC_ID")
         sys.exit(-1)
 
 
 def get_arg(help_string):
     if len(sys.argv)==1:
-        print "Please specify "+help_string
+        print("Please specify ", help_string)
         sys.exit(-1)
     else:
         return str(sys.argv[1])
-    
+
 

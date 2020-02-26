@@ -12,16 +12,16 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 # List the corpus for a custom langage model
 ##########################################################################
 
-print "\nGetting corpus ..."
+print("\nGetting corpus ...")
 
 headers = {'Content-Type' : "application/json"}
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/corpora/"
 r = requests.get(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
-print "Get corpus returns: ", r.status_code
+print("Get corpus returns: ", r.status_code)
 if r.status_code != 200:
-   print "Failed to get corpus"
+   print("Failed to get corpus")
    sys.exit(-1)
 else:
-   print r.text
+   print(r.text)
    sys.exit(0)

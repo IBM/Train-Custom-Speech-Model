@@ -12,13 +12,13 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 # Get list of custom lanugage models
 ##########################################################################
 
-print "\nGetting custom language models..."
+print("\nGetting custom language models...")
 
 headers = {'Content-Type' : "application/json"}
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations"
 r = requests.get(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
-print "Get models returns: ", r.status_code
-print r.text
+print("Get models returns: ", r.status_code)
+print(r.text)
 
 sys.exit(0)
