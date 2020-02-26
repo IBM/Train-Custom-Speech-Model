@@ -17,17 +17,17 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 #corpus_file = "dictation_fixed.txt"
 #corpus_name = "dictation-1"
 corpus_file = env.get_arg("corpus filename")
-print "\nAdding corpus file: "+corpus_file
+print("\nAdding corpus file: ", corpus_file)
 
 headers = {'Content-Type' : "application/json"}
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/corpora/"+corpus_file
 with open(corpus_file, 'rb') as f:
    r = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers, data=f)
 
-print "Adding corpus file returns: ", r.status_code
+print("Adding corpus file returns: ", r.status_code)
 if r.status_code != 201:
-   print "Failed to add corpus file"
-   print r.text
+   print("Failed to add corpus file")
+   print(r.text)
    sys.exit(-1)
 
 ##########################################################################
@@ -36,7 +36,7 @@ if r.status_code != 201:
 # You cannot upload a new corpus or words while this analysis is on-going so
 # we need to loop until the status becomes 'analyzed' for this corpus.
 ##########################################################################
-print "Checking status of corpus analysis..."
+print("Checking status of corpus analysis...")
 
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/corpora/"+corpus_file
 r = requests.get(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
@@ -48,24 +48,24 @@ while (status != 'analyzed'):
     r = requests.get(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
     respJson = r.json()
     status = respJson['status']
-    print "status: ", status, "(", time_to_run, ")"
+    print("status: ", status, "(", time_to_run, ")")
     time_to_run += 10
 
-print "Corpus analysis done!"
+print("Corpus analysis done!")
 
 ##########################################################################
 # Step 3:  get the list of all OOVs found
 # This step is only necessary if user wants to look at the OOVs and
 # validate the auto-added sounds-like field. Probably a good thing to do though.
 ##########################################################################
-print "\nListing words..."
+print("\nListing words...")
 
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/words?sort=count"
 r = requests.get(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
-print "Listing words returns: ", r.status_code
+print("Listing words returns: ", r.status_code)
 file=codecs.open(env.get_language_id()+".OOVs.corpus", 'wb', 'utf-8')
 file.write(r.text)
-print "Words list from added corpus saved in file: "+env.get_language_id()+".OOVs.corpus"
+print("Words list from added corpus saved in file: ", env.get_language_id(), ".OOVs.corpus")
 
 sys.exit(0)

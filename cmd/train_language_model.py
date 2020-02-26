@@ -14,12 +14,12 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 # A status of available means that the custom model is trained and ready to use. 
 ##########################################################################
 
-print "\nTrain custom language model..."
+print("\nTrain custom language model...")
 
 headers = {'Content-Type' : "application/json"}
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/train"
 r = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
-print "Train language model returns: ", r.status_code
+print("Train language model returns: ", r.status_code)
 
 sys.exit(0)
