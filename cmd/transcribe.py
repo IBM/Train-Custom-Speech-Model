@@ -13,28 +13,28 @@ headers = {'Content-Type' : "audio/wav"}
 ##########################################################################
 # Transcribe an audio file using a custom language and acoustic model
 # Need to specify in the API call:
-# - the base model 
+# - the base model
 # - the language_customization_id
 # - the acoustic_customization_id
 ##########################################################################
 
-print "\nTranscribe an audio using: "
+print("\nTranscribe an audio using: ")
 
 try:
     language_id = "&language_customization_id="+os.environ['LANGUAGE_ID']
-    print " - custom language model"
+    print(" - custom language model")
 except:
     language_id = ""
-    print " - base language model"
+    print(" - base language model")
 
-try: 
+try:
     acoustic_id = "&acoustic_customization_id="+os.environ['ACOUSTIC_ID']
-    print " - custom acoustic model"
+    print(" - custom acoustic model")
 except:
     acoustic_id = ""
-    print " - base acoustic model"
+    print(" - base acoustic model")
 
-    
+
 audio_file = env.get_arg("audio file to transcribe")
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?model=en-US_NarrowbandModel"+language_id+acoustic_id
 with open(audio_file, 'rb') as f:
@@ -42,12 +42,13 @@ with open(audio_file, 'rb') as f:
 
 output_file = open(audio_file.replace('.wav','') + '.transcript','w')
 transcript = ""
+print(r.json())
 for result in r.json()['results']:
     for alternative in result['alternatives']:
         transcript += alternative['transcript']
-        
-print "Transcription: "
-print transcript
+
+print("Transcription: ")
+print(transcript)
 
 output_file.write(transcript)
 output_file.close()
