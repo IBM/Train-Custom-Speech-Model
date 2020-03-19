@@ -14,16 +14,16 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 corpusName = env.get_arg("corpus filename")
 
-print "\nDeleting corpus ..."
+print("\nDeleting corpus ...")
 
 headers = {'Content-Type' : "application/json"}
 uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/corpora/"+corpusName
 r = requests.delete(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
-print "Delete corpus returns: ", r.status_code
+print("Delete corpus returns: ", r.status_code)
 if r.status_code != 200:
-   print "Failed to get corpus"
-   print r.text
+   print("Failed to get corpus")
+   print(r.text)
    sys.exit(-1)
 else:
    sys.exit(0)
