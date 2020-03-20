@@ -1,25 +1,16 @@
 ###########################################################################
-# Simple program to convert rtf text file to plain text format
-# Input is a file with the .rtf extension
-# Output is a plain text file with the same name and the .txt extension
-# This program uses the package pyth
-# Install by:
-#   pip install pyth
+# Simple program to convert .rtf text files in the Documents directory to
+# plain text format.
 ###########################################################################
 
-from pyth.plugins.rtf15.reader import Rtf15Reader
-from pyth.plugins.plaintext.writer import PlaintextWriter
-import sys
+import glob
+from striprtf.striprtf import rtf_to_text
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('Convert an rtf file to plain text')
-        print('Usage : %s filename.rtf' % sys.argv[0])
-    else:
-        input_file = open(sys.argv[1],'r')
-        output_file = open(input_file.name.replace('.rtf','') + '.txt','w')
-        doc = Rtf15Reader.read(input_file)
-        output_file.write(PlaintextWriter.write(doc).getvalue())
-        output_file.close()
-        input_file.close()
-
+    rtf_files = glob.glob('Documents/*.rtf')
+    for rtf_name in rtf_files:
+        txt_name = rtf_name.replace('.rtf','.txt')
+        txt_file = open(txt_name, "x")
+        content_txt = rtf_to_text(open(rtf_name).read())
+        txt_file.write(content_txt)
+        txt_file.close()

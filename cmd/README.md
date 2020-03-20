@@ -1,19 +1,19 @@
 # Manual interaction with Watson Speech service
 
-This directory contains a number of short python 2.7 programs that invoke the API call to the `Watson Speech to Text` service.
+This directory contains a number of short Python programs that invoke the API call to the `Watson Speech to Text` service.
 
 These programs are derived from the [API description](https://cloud.ibm.com/apidocs/speech-to-text#introduction).
 
-They can be used as simple command line to interact with thes peech service, complementing the UI tool to illustrate the concept and operation of the speech service while allowing more flexibility. They are intended as working code examples and not a full featured command line interface.
+They can be used as simple command line tools to interact with the speech service, complementing the UI tool to illustrate the concept and operation of the speech service while allowing more flexibility. They are intended as working code examples and not a full featured command line interface.
 
 The workflow is as follows:
 
 1. Create a custom language model based on an existing base model
    - create_language_model.py
-   - list_langugage_model.py
+   - list_language_model.py
    - delete_language_model.py
 
-2. Add one or more corpus to the custom language model.  The corpora are plain text file consisting of sentences used in your particular domain, such as medical transcription.
+2. Add one or more corpus to the custom language model.  The corpora are plain text files consisting of sentences used in your particular domain, such as medical transcription.
    - add_corpus.py
    - list_corpus.py
    - delete_corpus.py
@@ -37,13 +37,13 @@ The workflow is as follows:
 7. Submit a new voice recording to transcribe to text, using both of your custom language and acoustic models.
    - transcribe.py
 
-The python programs use the package *requests*.  You can install by:
+The python programs use the package *requests*. You can install by:
 
 ```bash
 pip install requests
 ```
 
-To run the python programs, please set the following environment variables:
+To run the Python programs, please set the following environment variables:
 
 ```bash
 export USERNAME=apikey
