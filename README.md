@@ -78,21 +78,13 @@ Go to the [ezDI](https://www.ezdi.com/open-datasets/) web site and download both
 
 Create both an `Audio` and `Documents` subdirectory inside the `data` directory and then extract the downloaded zip files into their respective locations.
 
-The transcription files stored in the `Documents` directory will be in **rtf** format, and need to be converted to plain text. Use the following bash script to convert them all to **txt** files.
-
-> If you have Python 2.7 installed run the following bash-commands .
+The transcription files stored in the `Documents` directory will be in **rtf** format, and need to be converted to plain text. You can use the `convert_rtf.py` Python script to convert them all to **txt** files. Run the following code block from the `data` directory to create a virtual environment, install dependencies, and run the conversion script. Note, you must have Python 3.
 
 ```bash
-pip install pyth
-for name in `ls Documents/*.rtf`;
-do
-  python convert_rtf.py $name
-done
-```
-> If you have Python 3 installed run the following instead:
-
-```bash
-python convert_rtf_python3.py
+python3 -m venv .venv
+source .venv/bin/activate
+pip install striprtf
+python convert_rtf.py
 ```
 
 The data needs careful preparation since our deep learning model will only be as good as the data used in the training. Preparation may include steps such as removing erroneous words in the text, bad audio recordings, etc. These steps are typically very time-consuming when dealing with large datasets.
@@ -192,6 +184,14 @@ cd data
 ```
 
 > Note: For a more detailed description of the available commands, see the [README](cmd/README.md) located in the `cmd` directory.
+
+#### Install dependencies
+
+The Python scripts use the package *requests*.  If you don't have it already, install it with:
+
+```bash
+pip install requests
+```
 
 #### Train the language model
 
