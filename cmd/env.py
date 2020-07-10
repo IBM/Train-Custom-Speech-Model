@@ -32,6 +32,15 @@ def get_password():
         sys.exit(-1)
 
 
+def get_endpoint():
+    try:
+        return os.environ['STT_ENDPOINT']
+    except:
+        print("Please set the environment variable STT_ENDPOINT to the "
+              "URL specified in your service credentials.")
+        sys.exit(-1)
+
+
 def get_language_id ():
     try:
         return os.environ['LANGUAGE_ID']

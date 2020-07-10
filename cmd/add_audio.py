@@ -17,7 +17,7 @@ audio_filename = env.get_arg("audio filename")
 print("\nAdding audio source ...")
 
 headers = {'Content-Type' : "application/zip"}
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/acoustic_customizations/"+env.get_acoustic_id()+"/audio/"+audio_filename
+uri = env.get_endpoint() + "/v1/acoustic_customizations/"+env.get_acoustic_id()+"/audio/"+audio_filename
 
 with open(audio_filename, 'rb') as f:
    r = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers, data=f)

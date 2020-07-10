@@ -48,6 +48,7 @@ To run the Python programs, please set the following environment variables:
 ```bash
 export USERNAME=apikey
 export PASSWORD=<your_apikey>
+export STT_ENDPOINT=<your_url>
 export LANGUAGE_ID=<your_custom_language_model_id>
 export ACOUSTIC_ID=<your_custom_acoustic_model_id>
 ```

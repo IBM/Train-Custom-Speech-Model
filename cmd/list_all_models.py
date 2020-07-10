@@ -15,7 +15,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 print("\nGetting all models...")
 
 headers = {'Content-Type' : "application/json"}
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/models"
+uri = env.get_endpoint() + "/v1/models"
 r = requests.get(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
 print("Get all models returns: ", r.status_code)
