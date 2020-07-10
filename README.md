@@ -170,11 +170,12 @@ Then select the `Train` tab to show the training options. Train both the `Langua
 
 ### b. Use the Command Line interface
 
-If you prefer to use the command line, set the following environment variables. Update the `<your-iam-api-key>` value with your apikey value you retrieved in [Step 3](#3-configure-credentials).
+If you prefer to use the command line, set the following environment variables. Update the `<your-iam-api-key>` and `<url>` values with the values retrieved in [Step 3](#3-configure-credentials).
 
 ```bash
 export USERNAME=apikey
 export PASSWORD=<your-iam-api-key>
+export STT_ENDPOINT=<your-url>
 ```
 
 To keep all of the generated data files in the proper directory, set the current directory to `data` before executing any of the following commands:

@@ -19,7 +19,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 print("\nResetting custom language model...")
 
 headers = {'Content-Type' : "application/json"}
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/reset"
+uri = env.get_endpoint() + "/v1/customizations/"+env.get_language_id()+"/reset"
 r = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
 print("Reset model returns: ", r.status_code)

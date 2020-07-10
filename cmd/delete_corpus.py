@@ -17,7 +17,7 @@ corpusName = env.get_arg("corpus filename")
 print("\nDeleting corpus ...")
 
 headers = {'Content-Type' : "application/json"}
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/corpora/"+corpusName
+uri = env.get_endpoint() + "/v1/customizations/"+env.get_language_id()+"/corpora/"+corpusName
 r = requests.delete(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
 print("Delete corpus returns: ", r.status_code)

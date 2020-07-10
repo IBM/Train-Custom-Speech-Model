@@ -17,7 +17,7 @@ print("\nCreate a new acoustic custom model: "+model_name)
 
 headers = {'Content-Type' : "application/json"}
 data = {"name" : model_name, "base_model_name" : "en-US_NarrowbandModel", "description" : "My narrowband acoustic model"}
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/acoustic_customizations"
+uri = env.get_endpoint() + "/v1/acoustic_customizations"
 jsonObject = json.dumps(data).encode('utf-8')
 resp = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers, data=jsonObject)
 

@@ -17,7 +17,7 @@ print("\nDeleting audio source ...")
 
 audio_name = env.get_arg("name of audio source")
 headers = {'Content-Type' : "application/json"}
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/acoustic_customizations/"+env.get_acoustic_id()+"/audio/"+audio_name
+uri = env.get_endpoint() + "/v1/acoustic_customizations/"+env.get_acoustic_id()+"/audio/"+audio_name
 r = requests.delete(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
 print("Delete audio source returns: ", r.status_code)

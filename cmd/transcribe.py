@@ -22,21 +22,21 @@ print("\nTranscribe an audio using: ")
 
 try:
     language_id = "&language_customization_id="+os.environ['LANGUAGE_ID']
-    print(" - custom language model")
+    print(" - custom language model (id: %s)" % os.environ['LANGUAGE_ID'])
 except:
     language_id = ""
     print(" - base language model")
 
 try:
     acoustic_id = "&acoustic_customization_id="+os.environ['ACOUSTIC_ID']
-    print(" - custom acoustic model")
+    print(" - custom acoustic model (id: %s)" % os.environ['ACOUSTIC_ID'])
 except:
     acoustic_id = ""
     print(" - base acoustic model")
 
 
 audio_file = env.get_arg("audio file to transcribe")
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?model=en-US_NarrowbandModel"+language_id+acoustic_id
+uri = env.get_endpoint() + "/v1/recognize?model=en-US_NarrowbandModel"+language_id+acoustic_id
 with open(audio_file, 'rb') as f:
     r = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers, data=f)
 

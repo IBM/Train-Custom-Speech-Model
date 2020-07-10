@@ -17,7 +17,7 @@ print("\nCreate a new language custom model: "+model_name)
 
 headers = {'Content-Type' : "application/json"}
 data = {"name" : model_name, "base_model_name" : "en-US_NarrowbandModel", "description" : "My narrowband language model"}
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"
+uri = env.get_endpoint() + "/v1/customizations/"
 jsonObject = json.dumps(data).encode('utf-8')
 r = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers, data=jsonObject)
 

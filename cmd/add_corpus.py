@@ -20,7 +20,7 @@ corpus_file = env.get_arg("corpus filename")
 print("\nAdding corpus file: ", corpus_file)
 
 headers = {'Content-Type' : "application/json"}
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/corpora/"+corpus_file
+uri = env.get_endpoint() + "/v1/customizations/"+env.get_language_id()+"/corpora/"+corpus_file
 with open(corpus_file, 'rb') as f:
    r = requests.post(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers, data=f)
 
@@ -38,7 +38,7 @@ if r.status_code != 201:
 ##########################################################################
 print("Checking status of corpus analysis...")
 
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/corpora/"+corpus_file
+uri = env.get_endpoint() + "/v1/customizations/"+env.get_language_id()+"/corpora/"+corpus_file
 r = requests.get(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 respJson = r.json()
 status = respJson['status']
@@ -60,7 +60,7 @@ print("Corpus analysis done!")
 ##########################################################################
 print("\nListing words...")
 
-uri = "https://stream.watsonplatform.net/speech-to-text/api/v1/customizations/"+env.get_language_id()+"/words?sort=count"
+uri = env.get_endpoint() + "/v1/customizations/"+env.get_language_id()+"/words?sort=count"
 r = requests.get(uri, auth=(env.get_username(),env.get_password()), verify=False, headers=headers)
 
 print("Listing words returns: ", r.status_code)
