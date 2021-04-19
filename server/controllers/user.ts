@@ -39,12 +39,9 @@ export let postLogin = (req: Request, res: Response) => {
           authenticated: false
         });
       }
-      const returnTo = req.session.returnTo || '/';
-      delete req.session.returnTo;
       return res.status(200).json({
         user: req.user,
-        authenticated: true,
-        returnTo
+        authenticated: true
       });
     });
     return null;
