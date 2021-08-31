@@ -74,10 +74,22 @@ Save off the `apikey` and `url` values as they will be needed in future steps.
 
 ## 4. Download and prepare the data
 
-Go to the [ezDI](https://www.ezdi.com/open-datasets/) web site and download both the medical dictation audio files and the transcribed text files. The downloaded files will be contained in zip files.
+Download the [ezDI Medical Dictation Dataset](https://ezdi-datasets.s3.us.cloud-object-storage.appdomain.cloud/ezDI-Medical-Dictation-Dataset.zip) which is a zip file containing both the audio and text files.
 
-Create both an `Audio` and `Documents` subdirectory inside the `data` directory and then extract the downloaded zip files into their respective locations.
+Extract the zip file, moving the `Documents` and `Audio` directories into the `data` directory located at the root of this project.
 
+The structure should look like:
+
+```
+Train-Custom-Speech-Model
+  |__ data
+      |__ Audio
+      |     |__ 1.wav
+      |     |__ ...
+      |__ Documents
+            |__ 1.rtf
+            |__ ...
+```
 The transcription files stored in the `Documents` directory will be in **rtf** format, and need to be converted to plain text. You can use the `convert_rtf.py` Python script to convert them all to **txt** files. Run the following code block from the `data` directory to create a virtual environment, install dependencies, and run the conversion script. Note, you must have Python 3.
 
 ```bash
